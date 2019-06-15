@@ -2,4 +2,5 @@
 (uiop:define-package :linear-programming/all
    (:nicknames :linear-programming
                :lp
-               :lp/all))
+               :lp/all)
+   (:reexport :linear-programming/problem))
