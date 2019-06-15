@@ -6,4 +6,4 @@
   :class :package-inferred-system
   :pathname "t"
   :depends-on ("linear-programming-test/all")
-  :perform (test-op (o c) (symbol-call '#:fiveam '#:run! (intern "LINEAR-PROGRAMMING-TEST" '#:linear-programming-test))))
+  :perform (test-op (o c) (symbol-call '#:fiveam '#:run! (intern "LINEAR-PROGRAMMING" '#:linear-programming-test))))

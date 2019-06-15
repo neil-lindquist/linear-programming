@@ -1,7 +1,8 @@
 
 (uiop:define-package :linear-programming-test/base
   (:use :cl
-        :fiveam))
+        :fiveam)
+  (:export #:linear-programming))
 
 (in-package :linear-programming-test/base)
 
