@@ -4,7 +4,23 @@
          :alexandria
          :iterate
          :linear-programming/expressions)
-  (:export #:make-linear-problem))
+  (:export #:make-linear-problem
+           #:parse-linear-problem
+
+           #:non-neg
+           #:<=
+           #:>=
+           #:<
+           #:>
+           #:+
+           #:*
+
+           #:linear-problem
+           #:lp-type
+           #:variables
+           #:objective-function
+           #:non-neg-vars
+           #:constraints))
 
 (in-package :linear-programming/problem)
 
@@ -14,17 +30,27 @@
          :type (member (:max :min)))
    (variables :reader variables
               :initarg :variables
-              :type (vector symbol))
-   (objective-coefs :reader objective-coefs
-                    :initarg :objective-coefs
-                    :type (vector real))))
+              :type (vector symbol)
+              :documentation "A vector with the variables in the problem")
+   (objective :reader objective-function
+              :initarg :objective
+              :type list
+              :documentation "A linear expression for the objective function")
+   (non-neg-vars :reader non-neg-vars
+                 :initarg :non-neg
+                 :type list
+                 :documentation "A list of variables that are non negative")
+   (constraints :reader constraints
+                :initarg :constraints
+                :type list
+                :documentation "A list of simple inequality contraints")))
 
 (defun simplify-equality (eq)
   "Takes an <= equality and makes any constant the rhs as a number and the
    non-constant values the lhs as a linear expression"
   (let* ((lin-exp (combine-linear-expressions
                     (list (second eq)
-                          (scale-linear-expression eq -1))))
+                          (scale-linear-expression (third eq) -1))))
          (const (cdr (assoc '+constant+
                             lin-exp
                             :test 'eq)))
@@ -72,24 +98,26 @@
   (let* ((type (first objective))
          (objective-function (parse-linear-expression (second objective)))
          (parsed-constraints (parse-linear-constraints constraints))
-         (bound-constraints (first parsed-constraints))
-         (eq-constraints (second parsed-constraints))
+         (eq-constraints (first parsed-constraints))
+         (bound-constraints (second parsed-constraints))
          (var-list (union
                      (union (mapcar 'car objective-function)
-                            (mapcar 'car bound-constraints))
-                     (reduce 'union
+                            bound-constraints)
+                     (reduce (rcurry 'union :key 'car)
                              eq-constraints
-                             :key (compose 'car 'second)
+                             :key (compose 'second)
                              :initial-value nil)))
-         (variables (make-array 1 :initial-contents var-list
-                                  :element-type 'symbol)))
+         (variables (make-array (length var-list)
+                                :initial-contents var-list
+                                :element-type 'symbol)))
     (make-instance 'linear-problem
-                   :lp-type type
+                   :type type
                    :variables variables
-                   :objective-coefs (map 'vector (rcurry 'assoc objective-function :test 'eq)
-                                                 variables))))
+                   :objective objective-function
+                   :non-neg bound-constraints
+                   :constraints eq-constraints)))
 
 
 (defun make-linear-problem (objective &rest constraints)
   "Creates a linear problem from the expressions in the body"
-  (parse-linear-problem objective constraints))
+  `(parse-linear-problem ',objective ',constraints))

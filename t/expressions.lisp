@@ -3,6 +3,7 @@
   (:use :cl
         :fiveam
         :linear-programming-test/base
+        :linear-programming-test/test-utils
         :linear-programming/expressions)
   (:export #:expressions))
 
@@ -12,10 +13,6 @@
   :in linear-programming
   :description "The suite to test linear-programming/expressions")
 (in-suite expressions)
-
-(defun set-equal (s1 s2)
-  "Helper method to test for set equality"
-  (null (set-exclusive-or s1 s2 :test #'equal)))
 
 (test scale-linear-expression
   (is (equal '((a . 24) (b . 7/2) (c . 4.5))
@@ -42,4 +39,4 @@
 (test parse-linear-expression
   (is (set-equal '((a . 1) (+constant+ . 5) (b . 8))
                  (parse-linear-expression '(+ a 5 (* 8 b)))))
-  (signals error (parse-linear-expression '(* x y)))) 
+  (signals error (parse-linear-expression '(* x y))))
