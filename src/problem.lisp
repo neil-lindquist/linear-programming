@@ -118,6 +118,6 @@
                    :constraints eq-constraints)))
 
 
-(defun make-linear-problem (objective &rest constraints)
+(defmacro make-linear-problem (objective &rest constraints)
   "Creates a linear problem from the expressions in the body"
   `(parse-linear-problem ',objective ',constraints))
