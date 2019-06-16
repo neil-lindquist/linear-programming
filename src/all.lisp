@@ -3,4 +3,4 @@
    (:nicknames :linear-programming
                :lp
                :lp/all)
-   (:reexport :linear-programming/problem))
+   (:use-reexport :linear-programming/problem))

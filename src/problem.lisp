@@ -103,7 +103,7 @@
          (var-list (union
                      (union (mapcar 'car objective-function)
                             bound-constraints)
-                     (reduce (rcurry 'union :key 'car)
+                     (reduce (lambda (l1 l2) (union l1 (mapcar 'car l2)))
                              eq-constraints
                              :key (compose 'second)
                              :initial-value nil)))
