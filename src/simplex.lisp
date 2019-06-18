@@ -43,6 +43,8 @@
     ; constraint rows
     (iter (for row from 0 below num-slack)
           (for constraint in (constraints problem))
+      (when (not (eq '<= (first constraint)))
+        (error "~S is not an <= constraint" constraint))
       ;variables
       (iter (for col from 0 below num-vars)
             (for var = (aref vars col))
@@ -52,10 +54,7 @@
       (setf (aref matrix (+ num-vars row) row) 1
             (aref basis-columns row) (+ num-vars row))
       ;rhs
-      (setf (aref matrix (+ num-vars num-slack) row) (third constraint))
-      (assert (<= 0 (third constraint))
-              ((third constraint))
-              "Negative value of ~A is not allowed as a right hand side" (third constraint)))
+      (setf (aref matrix (+ num-vars num-slack) row) (third constraint)))
     ;objective row
     (iter (for col from 0 below num-vars)
           (for var = (aref vars col))

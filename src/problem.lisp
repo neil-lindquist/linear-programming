@@ -58,10 +58,13 @@
                       lin-exp
                       :test 'eq
                       :key 'car)))
-    (list '<= sum
-              (if const
-                (- const)
-                0))))
+    (cond
+      ((null const)
+       (list '<= sum 0))
+      ((> const 0)
+       (list '>= (scale-linear-expression sum -1) (- const)))
+      (t
+       (list '<= sum (- const))))))
 
 (defun parse-linear-constraints (exprs)
   "Parses the list of constraints and returns a list containing a list of simple
