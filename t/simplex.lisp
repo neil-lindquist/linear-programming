@@ -22,10 +22,11 @@
          (tableau (build-tableau problem)))
     (is-true (tableau-p tableau))
     (is (eq problem (tableau-problem tableau)))
-    (is (equal 5 (tableau-var-count tableau)))
-    (is (equal 2 (tableau-constraint-count tableau)))
+    (is (= 5 (tableau-var-count tableau)))
+    (is (= 2 (tableau-constraint-count tableau)))
     (is (equalp #2A((2 0 -1) (1 1 -4) (0 1 -3) (1 0 0) (0 1 0) (8 7 0)) (tableau-matrix tableau)))
-    (is (equalp #(3 4) (tableau-basis-columns tableau)))))
+    (is (equalp #(3 4) (tableau-basis-columns tableau)))
+    (is (= 0 (tableau-objective-value tableau)))))
 
 
 (test solve-tableau
@@ -39,7 +40,8 @@
     (is (equal 5 (tableau-var-count tableau)))
     (is (equal 2 (tableau-constraint-count tableau)))
     (is (equalp #2A((1 0 0) (0 1 0) (-1/2 1 1/2) (1/2 0 1/2) (-1/2 1 7/2) (1/2 7 57/2)) (tableau-matrix tableau)))
-    (is (equalp #(0 1) (tableau-basis-columns tableau)))))
+    (is (equalp #(0 1) (tableau-basis-columns tableau)))
+    (is (= 57/2 (tableau-objective-value tableau)))))
 
 
 (test with-tableau-variables

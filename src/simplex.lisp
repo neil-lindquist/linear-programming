@@ -12,6 +12,7 @@
            #:tableau-basis-columns
            #:tableau-var-count
            #:tableau-constraint-count
+           #:tableau-objective-value
 
            #:pivot-row
 
@@ -28,6 +29,11 @@
   (var-count 0 :read-only t :type (integer 0 *))
   (constraint-count 0 :read-only t :type (integer 0 *)))
 
+(defun tableau-objective-value (tableau)
+  "Gets the objective function value in the tableau"
+  (aref (tableau-matrix tableau)
+        (tableau-var-count tableau)
+        (tableau-constraint-count tableau)))
 
 (defun build-tableau (problem)
   "Creates the tableau from the given linear problem."
