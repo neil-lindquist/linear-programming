@@ -24,17 +24,17 @@
              (scale-linear-expression '((a . 8) (b . 7/6) (c . 1.5))
                                       1/2))))
 
-(test combine-linear-expressions
-  (is (eq nil (combine-linear-expressions nil)))
-  (is (eq nil (combine-linear-expressions (list nil))))
-  (is (eq nil (combine-linear-expressions (list nil nil))))
-  (is (eq nil (combine-linear-expressions (list nil nil nil))))
+(test sum-linear-expressions
+  (is (eq nil (sum-linear-expressions nil)))
+  (is (eq nil (sum-linear-expressions (list nil))))
+  (is (eq nil (sum-linear-expressions (list nil nil))))
+  (is (eq nil (sum-linear-expressions (list nil nil nil))))
 
   (is (set-equal '((a . 8) (b . 7/6) (c . 1.5))
-                 (combine-linear-expressions '(((a . 8) (b . 7/6) (c . 1.5))))))
+                 (sum-linear-expressions '(((a . 8) (b . 7/6) (c . 1.5))))))
   (is (set-equal '((a . 12) (b . 19/6) (c . 2.0) (d . 6) (e . 7/4))
-                 (combine-linear-expressions '(((a . 8) (b . 7/6) (c . 1.5) (d . 6))
-                                               ((a . 4) (b . 2) (c . 1/2) (e . 7/4)))))))
+                 (sum-linear-expressions '(((a . 8) (b . 7/6) (c . 1.5) (d . 6))
+                                           ((a . 4) (b . 2) (c . 1/2) (e . 7/4)))))))
 
 (test parse-linear-expression
   (is (set-equal '((a . 1) (+constant+ . 5) (b . 8))

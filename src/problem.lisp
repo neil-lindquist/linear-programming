@@ -48,7 +48,7 @@
 (defun simplify-equality (eq)
   "Takes an <= equality and makes any constant the rhs as a number and the
    non-constant values the lhs as a linear expression"
-  (let* ((lin-exp (combine-linear-expressions
+  (let* ((lin-exp (sum-linear-expressions
                     (list (second eq)
                           (scale-linear-expression (third eq) -1))))
          (const (cdr (assoc '+constant+

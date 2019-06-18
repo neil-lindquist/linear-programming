@@ -4,13 +4,13 @@
          :alexandria
          :iterate)
   (:export #:scale-linear-expression
-           #:combine-linear-expressions
+           #:sum-linear-expressions
            #:parse-linear-expression
            #:+constant+))
 
 (in-package :linear-programming/expressions)
 
-(defun combine-linear-expressions (exprs)
+(defun sum-linear-expressions (exprs)
   "Takes a list of linear expressions and reduces it into a single expression"
   (reduce #'(lambda (collected next)
               (if-let (pair (assoc (car next) collected))
@@ -44,7 +44,7 @@
 
     ; arithmetic
     ((eq (first expr) '+)
-     (combine-linear-expressions (mapcar 'parse-linear-expression (rest expr))))
+     (sum-linear-expressions (mapcar 'parse-linear-expression (rest expr))))
     ((eq (first expr) '*)
      (unless (= 3 (length expr))
        (error "Multiplication in linear expressions only supports two products"))

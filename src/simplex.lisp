@@ -13,6 +13,8 @@
            #:tableau-var-count
            #:tableau-constraint-count
 
+           #:pivot-row
+
            #:build-tableau
            #:solve-tableau
            #:with-tableau-variables))
@@ -20,11 +22,11 @@
 (in-package :linear-programming/simplex)
 
 (defstruct tableau
-  (problem nil :read-only t)
-  (matrix #2A() :read-only t) ;:type (array real 2)
-  (basis-columns #() :read-only t);#() :type (vector (integer 0 *))
-  (var-count 0 :read-only t) ;:type (integer 0 *)
-  (constraint-count 0 :read-only t)) ;:type (integer 0 *))
+  (problem nil :read-only t :type linear-problem)
+  (matrix #2A() :read-only t :type (array real 2))
+  (basis-columns #() :read-only t :type vector)
+  (var-count 0 :read-only t :type (integer 0 *))
+  (constraint-count 0 :read-only t :type (integer 0 *)))
 
 
 (defun build-tableau (problem)
@@ -110,6 +112,7 @@
                                  (aref matrix entering-col i)))))))
 
 (defun solve-tableau (tableau)
+  "Attempts to solve the tableau using the simplex method."
   (iter (for entering-column = (find-entering-column tableau))
         (while entering-column)
     (pivot-row tableau entering-column (find-leaving-column tableau entering-column)))
