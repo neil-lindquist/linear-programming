@@ -14,7 +14,8 @@
            #:tableau-constraint-count
 
            #:build-tableau
-           #:solve-tableau))
+           #:solve-tableau
+           #:with-tableau-variables))
 
 (in-package :linear-programming/simplex)
 
@@ -113,3 +114,28 @@
         (while entering-column)
     (pivot-row tableau entering-column (find-leaving-column tableau entering-column)))
   tableau)
+
+
+(defmacro with-tableau-variables (var-list tableau &body body)
+  "Evaluates the body with the variables in `var-list` bound to their values in
+   the tableau.  If a linear problem is instead passed as `var-list`, all
+   of the problem's variables are bound."
+  (if (typep var-list 'linear-problem)
+    (let* ((vars (variables var-list))
+           (num-vars (+ (length vars) (length (constraints var-list)))))
+      `(let (,@(iter (for var in-vector vars)
+                     (for i from 0)
+                 (collect `(,var (if-let (idx (position ,i (tableau-basis-columns ,tableau)))
+                                   (aref (tableau-matrix ,tableau) ,num-vars idx)
+                                   0)))))
+         ,@body))
+    `(flet ((get-variable-value (var)
+               (if-let (idx (position (position var (variables (tableau-problem ,tableau)))
+                                      (tableau-basis-columns ,tableau)))
+                 (aref (tableau-matrix ,tableau)
+                       (tableau-var-count ,tableau)
+                       idx)
+                 0)))
+       (let (,@(iter (for var in-sequence var-list)
+                 (collect `(,var (get-variable-value ',var)))))
+         ,@body))))

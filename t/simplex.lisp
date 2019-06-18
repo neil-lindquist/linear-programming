@@ -40,3 +40,19 @@
     (is (equal 2 (tableau-constraint-count tableau)))
     (is (equalp #2A((1 0 0) (0 1 0) (-1/2 1 1/2) (1/2 0 1/2) (-1/2 1 7/2) (1/2 7 57/2)) (tableau-matrix tableau)))
     (is (equalp #(0 1) (tableau-basis-columns tableau)))))
+
+
+(test with-tableau-variables
+  (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
+                                       (<= (+ (* 2 x) y) 8)
+                                       (<= (+ y z) 7)
+                                       (non-neg x y z)))
+         (tableau (solve-tableau (build-tableau problem))))
+    (with-tableau-variables (x y z) tableau
+      (is (= 1/2 x))
+      (is (= 7 y))
+      (is (= 0 z)))
+    (eval `(with-tableau-variables ,problem ,tableau
+             (is (= x 1/2))
+             (is (= y 7))
+             (is (= z 0))))))
