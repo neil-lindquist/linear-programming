@@ -4,4 +4,6 @@
   (:use-reexport :linear-programming-test/base
                  :linear-programming-test/expressions
                  :linear-programming-test/problem
-                 :linear-programming-test/simplex))
+                 :linear-programming-test/simplex
+
+                 :linear-programming-test/integration))
