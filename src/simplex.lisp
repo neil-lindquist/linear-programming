@@ -89,6 +89,7 @@
   (setf (aref (tableau-basis-columns tableau) changing-row) entering-col)
   tableau)
 
+(declaim (inline find-entering-column))
 (defun find-entering-column (tableau)
   "Gets the column to add to the basis"
   (let ((num-constraints (tableau-constraint-count tableau)))
@@ -97,18 +98,17 @@
         (finding i minimizing (aref (tableau-matrix tableau) i num-constraints)
                   into col)
         (finally
-          (return (if (< (aref (tableau-matrix tableau) col num-constraints) 0)
-                    col
-                    nil))))
+          (return (when (< (aref (tableau-matrix tableau) col num-constraints) 0)
+                    col))))
       (iter (for i from 0 below (tableau-var-count tableau))
         (finding i maximizing (aref (tableau-matrix tableau) i num-constraints)
                    into col)
         (finally
-          (return (if (> (aref (tableau-matrix tableau) col num-constraints) 0)
-                    col
-                    nil)))))))
+          (return (when (> (aref (tableau-matrix tableau) col num-constraints) 0)
+                    col)))))))
 
-(defun find-leaving-column (tableau entering-col)
+(declaim (inline find-pivoting-row))
+(defun find-pivoting-row (tableau entering-col)
   "Gets the column that will leave the basis"
   (let ((matrix (tableau-matrix tableau)))
     (iter (for i from 0 below (tableau-constraint-count tableau))
@@ -120,7 +120,10 @@
   "Attempts to solve the tableau using the simplex method."
   (iter (for entering-column = (find-entering-column tableau))
         (while entering-column)
-    (pivot-row tableau entering-column (find-leaving-column tableau entering-column)))
+    (let ((pivoting-row (find-pivoting-row tableau entering-column)))
+      (unless pivoting-row
+        (error "Cannot find valid row to pivot.  Problem is likely unbound."))
+      (pivot-row tableau entering-column pivoting-row)))
   tableau)
 
 
