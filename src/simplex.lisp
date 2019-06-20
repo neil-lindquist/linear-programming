@@ -24,8 +24,8 @@
 
 (defstruct tableau
   (problem nil :read-only t :type linear-problem)
-  (matrix #2A() :read-only t :type (array real 2))
-  (basis-columns #() :read-only t :type vector)
+  (matrix #2A() :read-only t :type (simple-array real 2))
+  (basis-columns #() :read-only t :type (simple-array * (*)))
   (var-count 0 :read-only t :type (integer 0 *))
   (constraint-count 0 :read-only t :type (integer 0 *)))
 
@@ -75,6 +75,7 @@
 
 (defun pivot-row (tableau entering-col changing-row)
   "Applies a single pivot to the table."
+  (declare (type unsigned-byte entering-col changing-row))
   (let* ((matrix (tableau-matrix tableau))
          (col-count (array-dimension matrix 0))
          (row-count (array-dimension matrix 1)))
@@ -119,6 +120,7 @@
 
 (defun solve-tableau (tableau)
   "Attempts to solve the tableau using the simplex method."
+  (check-type tableau tableau)
   (iter (for entering-column = (find-entering-column tableau))
         (while entering-column)
     (let ((pivoting-row (find-pivoting-row tableau entering-column)))
