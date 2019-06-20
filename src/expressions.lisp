@@ -10,6 +10,7 @@
 
 (in-package :linear-programming/expressions)
 
+(declaim (inline sum-linear-expressions))
 (defun sum-linear-expressions (exprs)
   "Takes a list of linear expressions and reduces it into a single expression"
   (reduce #'(lambda (collected next)
@@ -21,7 +22,7 @@
           (apply 'append exprs)
           :initial-value nil))
 
-
+(declaim (inline scale-linear-expression))
 (defun scale-linear-expression (expr scalar)
   "Multiplies the linear expression by the given scalar"
   (mapcar #'(lambda (x) (cons (car x) (* scalar (cdr x))))

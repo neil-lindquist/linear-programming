@@ -51,12 +51,13 @@
                 :type list
                 :documentation "A list of simple inequality contraints")))
 
-(defun simplify-equality (eq)
-  "Takes an <= equality and makes any constant the rhs as a number and the
-   non-constant values the lhs as a linear expression"
+(declaim (inline simple-leq))
+(defun simple-leq (exp1 exp2)
+  "Takes the rhs and lhs of a <= inequality and moves any constant to the rhs
+   as a number and any non-constant values to the lhs as a linear expression."
   (let* ((lin-exp (sum-linear-expressions
-                    (list (second eq)
-                          (scale-linear-expression (third eq) -1))))
+                      (list exp1
+                            (scale-linear-expression exp2 -1))))
          (const (cdr (assoc '+constant+
                             lin-exp
                             :test 'eq)))
@@ -88,15 +89,12 @@
                  into signed))
       (t (error "~A is not a valid constraint" expr)))
     (finally
-      (let* ((split-eqs (reduce 'append
+      (let ((simple-eqs (reduce 'append
                                  equalities
                                  :key #'(lambda (constraint)
                                           (iter (for i from 2 below (length constraint))
-                                            (collect (list '<=
-                                                           (nth (1- i) constraint)
-                                                           (nth i constraint)))))))
-             (simple-eqs (mapcar 'simplify-equality
-                                 split-eqs)))
+                                            (collect (simple-leq (nth (1- i) constraint)
+                                                                 (nth i constraint))))))))
         (return (list simple-eqs signed))))))
 
 
@@ -109,7 +107,8 @@
          (objective-var (if objective-var-p
                           (second objective-exp)
                           (gensym "z"))))
-    (when (and (not objective-var-p) (eq (first (second objective)) '=))
+    (when (and (not objective-var-p)
+               (eq (first (second objective)) '=))
       (setf objective-var (second (second objective)))
       (setf objective (list (first objective) (third (second objective))))
       (setf objective-var-p t))
@@ -121,11 +120,11 @@
            (eq-constraints (first parsed-constraints))
            (signed-constraints (second parsed-constraints))
            (var-list (union
-                       (union (mapcar 'car objective-function)
+                       (union (mapcar #'car objective-function)
                               signed-constraints)
-                       (reduce (lambda (l1 l2) (union l1 (mapcar 'car l2)))
+                       (reduce (lambda (l1 l2) (union l1 (mapcar #'car l2)))
                                eq-constraints
-                               :key (compose 'second)
+                               :key 'second
                                :initial-value nil)))
            (variables (make-array (length var-list)
                                   :initial-contents var-list
