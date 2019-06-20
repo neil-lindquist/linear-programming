@@ -43,15 +43,17 @@
 
 
 (test with-tableau-variables
-  (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
+  (let* ((problem (make-linear-problem (= w (max (+ x (* 4 y) (* 3 z))))
                                        (<= (+ (* 2 x) y) 8)
                                        (<= (+ y z) 7)))
          (tableau (solve-tableau (build-tableau problem))))
-    (with-tableau-variables (x y z) tableau
+    (with-tableau-variables (x y z w) tableau
+      (is (= 57/2 w))
       (is (= 1/2 x))
       (is (= 7 y))
       (is (= 0 z)))
     (eval `(with-tableau-variables ,problem ,tableau
+             (is (= 57/2 w))
              (is (= x 1/2))
              (is (= y 7))
              (is (= z 0))))))

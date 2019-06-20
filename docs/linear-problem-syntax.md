@@ -2,7 +2,7 @@
 `make-linear-problem` uses a basic DSL to describe the linear-problem to assemble.
 It takes an *optimization-problem* form, followed by the *constraint* forms, both of which are described by the following grammar.
 
-*optimization-problem* = (min|max *linear-expression*)  
+*optimization-problem* = (min|max *linear-expression*) | (= *objective-variable* (min|max *linear-expression)) | (min|max (= *objective-variable* *linear-expression))  
 *constraint* = *inequality-constraint* | *positivity-constraint*  
 *positivity-contraint* = (signed *var*\*)  
 *inequality-constraint* = (<=|<|>=|> *linear-expression*\*)  

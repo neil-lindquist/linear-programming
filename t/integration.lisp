@@ -25,12 +25,9 @@
   ; Finished widgets are assembled from 4 units of A and 3 units of B.  100
   ; units of material 1 and 200 units of material 2 are avalible.  Maximize the
   ; number of widgets produced."
-  ;
-  ; Solution: 0 runs of department 1
-  ;           0 runs of department 2
-  ;           25 runs of department 3
-  ;           50 total widgets
-  (let* ((problem (make-linear-problem (max (* 3 widgets))
+  ; Additionally, widgets are sold at $3 per unit to increase the coverage of
+  ; this test.
+  (let* ((problem (make-linear-problem (= revenue (max (* 3 widgets)))
                                        ; construction of widgets
                                        (<= (+ (* 4 widgets) (* -7 d1)
                                               (* -6 d2) (* -8 d3))
@@ -42,11 +39,11 @@
                                        (<= (+ (* 8 d1) (* 5 d2) (* 3 d3)) 100)
                                        (<= (+ (* 6 d1) (* 9 d2) (* 8 d3)) 200)))
          (tableau (solve-tableau (build-tableau problem))))
-    (with-tableau-variables (widgets d1 d2 d3) tableau
+    (with-tableau-variables (revenue widgets d1 d2 d3) tableau
 
-      (is (<= 136.08 (tableau-objective-value tableau) 136.11)
-          (format nil "Computed objective value of ~A, instead of 136.08-136.11"
-                      (float (tableau-objective-value tableau))))
+      (is (<= 136.08 revenue 136.11)
+          (format nil "Computed revenue of ~A, instead of 136.08-136.11"
+                      (float revenue)))
       (is (<= 45.36 widgets 45.37)
           (format nil "Computed ~A widgets, instead of 45.36-45.37" (float widgets)))
       (is (<= 2.37 d1 2.38)

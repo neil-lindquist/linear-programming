@@ -18,6 +18,7 @@
            #:linear-problem
            #:lp-type
            #:variables
+           #:objective-variable
            #:objective-function
            #:signed-vars
            #:constraints))
@@ -31,7 +32,12 @@
    (variables :reader variables
               :initarg :variables
               :type (vector symbol)
-              :documentation "A vector with the variables in the problem")
+              :documentation "A vector with the decision variables of the problem")
+   (objective-var :reader objective-variable
+                  :initarg :objective-variable
+                  :initform (gensym "z")
+                  :type symbol
+                  :documentation "A symbol for the variable representing the objective function")
    (objective :reader objective-function
               :initarg :objective
               :type list
@@ -94,31 +100,43 @@
         (return (list simple-eqs signed))))))
 
 
-(defun parse-linear-problem (objective constraints)
+(defun parse-linear-problem (objective-exp constraints)
   "Parses the expressions into a linear programming problem"
-  (unless (member (first objective) '(min max) :test 'eq)
-    (error "~A is not min or max in objective function ~A" (first objective) objective))
-  (let* ((type (first objective))
-         (objective-function (parse-linear-expression (second objective)))
-         (parsed-constraints (parse-linear-constraints constraints))
-         (eq-constraints (first parsed-constraints))
-         (signed-constraints (second parsed-constraints))
-         (var-list (union
-                     (union (mapcar 'car objective-function)
-                            signed-constraints)
-                     (reduce (lambda (l1 l2) (union l1 (mapcar 'car l2)))
-                             eq-constraints
-                             :key (compose 'second)
-                             :initial-value nil)))
-         (variables (make-array (length var-list)
-                                :initial-contents var-list
-                                :element-type 'symbol)))
-    (make-instance 'linear-problem
-                   :type type
-                   :variables variables
-                   :objective objective-function
-                   :signed signed-constraints
-                   :constraints eq-constraints)))
+  (let* ((objective-var-p (eq (first objective-exp) '=))
+         (objective (if objective-var-p
+                      (third objective-exp)
+                      objective-exp))
+         (objective-var (if objective-var-p
+                          (second objective-exp)
+                          (gensym "z"))))
+    (when (and (not objective-var-p) (eq (first (second objective)) '=))
+      (setf objective-var (second (second objective)))
+      (setf objective (list (first objective) (third (second objective))))
+      (setf objective-var-p t))
+    (unless (member (first objective) '(min max) :test 'eq)
+      (error "~A is not min or max in objective function ~A" (first objective) objective))
+    (let* ((type (first objective))
+           (objective-function (parse-linear-expression (second objective)))
+           (parsed-constraints (parse-linear-constraints constraints))
+           (eq-constraints (first parsed-constraints))
+           (signed-constraints (second parsed-constraints))
+           (var-list (union
+                       (union (mapcar 'car objective-function)
+                              signed-constraints)
+                       (reduce (lambda (l1 l2) (union l1 (mapcar 'car l2)))
+                               eq-constraints
+                               :key (compose 'second)
+                               :initial-value nil)))
+           (variables (make-array (length var-list)
+                                  :initial-contents var-list
+                                  :element-type 'symbol)))
+      (make-instance 'linear-problem
+                     :type type
+                     :variables variables
+                     :objective-variable objective-var
+                     :objective objective-function
+                     :signed signed-constraints
+                     :constraints eq-constraints))))
 
 
 (defmacro make-linear-problem (objective &rest constraints)
