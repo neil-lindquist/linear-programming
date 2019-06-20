@@ -23,7 +23,7 @@
 (in-package :linear-programming/simplex)
 
 (defstruct tableau
-  (problem nil :read-only t :type linear-problem)
+  (problem nil :read-only t :type (or linear-problem artificial-linear-problem))
   (matrix #2A() :read-only t :type (simple-array real 2))
   (basis-columns #() :read-only t :type (simple-array * (*)))
   (var-count 0 :read-only t :type (integer 0 *))
@@ -36,8 +36,23 @@
         (tableau-var-count tableau)
         (tableau-constraint-count tableau)))
 
+
+(defclass artificial-linear-problem ()
+  ((problem :reader base-problem
+          :initarg :base-problem
+          :type linear-problem
+          :documentation "The underlying problem"))
+  (:documentation "Represents the linear problem when artificial variables are
+                  present when using a two-phase simplex."))
+(defmethod lp-type ((problem artificial-linear-problem))
+  (declare (ignore problem))
+  'min)
+
+
 (defun build-tableau (problem)
-  "Creates the tableau from the given linear problem."
+  "Creates the tableau from the given linear problem.  If the trivial basis is
+   not feasible, instead a list is returned containing the two tableaus for a
+   two-phase simplex method."
   (when (/= 0 (length (signed-vars problem)))
     (error "Cannot currently handle possibly negative variables."))
   (let* ((num-slack (length (constraints problem)))
@@ -46,20 +61,24 @@
          (matrix (make-array (list (+ num-vars num-slack 1) (1+ num-slack))
                             :element-type 'real
                             :initial-element 0))
-         (basis-columns (make-array (list num-slack) :element-type `(integer 0 ,(+ num-vars num-slack 1)))))
+         (basis-columns (make-array (list num-slack) :element-type `(integer 0 ,(+ num-vars num-slack 1))))
+         (artificial-var-rows nil))
     ; constraint rows
     (iter (for row from 0 below num-slack)
           (for constraint in (constraints problem))
-      (when (not (eq '<= (first constraint)))
-        (error "~S is not an <= constraint" constraint))
       ;variables
       (iter (for col from 0 below num-vars)
             (for var = (aref vars col))
         (when-let (value (cdr (assoc var (second constraint))))
           (setf (aref matrix col row) value)))
       ;slack
-      (setf (aref matrix (+ num-vars row) row) 1
-            (aref basis-columns row) (+ num-vars row))
+      (if (eq '<= (first constraint))
+        (setf (aref matrix (+ num-vars row) row) 1
+              (aref basis-columns row) (+ num-vars row))
+        (progn
+          (push row artificial-var-rows)
+          (setf (aref matrix (+ num-vars row) row) -1
+                (aref basis-columns row) (+ num-vars row))))
       ;rhs
       (setf (aref matrix (+ num-vars num-slack) row) (third constraint)))
     ;objective row
@@ -67,11 +86,48 @@
           (for var = (aref vars col))
       (when-let (value (cdr (assoc var (objective-function problem))))
         (setf (aref matrix col num-slack) (- value))))
-    (make-tableau :problem problem
-                  :matrix matrix
-                  :basis-columns basis-columns
-                  :var-count (+ num-vars num-slack)
-                  :constraint-count num-slack)))
+    (let ((main-tableau (make-tableau :problem problem
+                                      :matrix matrix
+                                      :basis-columns basis-columns
+                                      :var-count (+ num-vars num-slack)
+                                      :constraint-count num-slack))
+          (art-tableau (when artificial-var-rows
+                         (let* ((num-art (length artificial-var-rows))
+                                (art-matrix (make-array (list (+ num-vars num-slack num-art 1) (1+ num-slack))
+                                                        :element-type 'real
+                                                        :initial-element 0))
+                                (art-basis-columns (copy-array basis-columns)))
+                           (iter (for row in artificial-var-rows)
+                                 (for i from 0)
+                             (setf (aref art-basis-columns row)
+                                   (+ num-vars num-slack i))
+                             (setf (aref art-matrix (+ num-vars num-slack i) row) 1))
+
+                           ;copy coefficients
+                           (iter (for c from 0 below (+ num-vars num-slack))
+                             (setf (aref art-matrix c num-slack)
+                                   (iter (for r from 0 below num-slack)
+                                      (setf (aref art-matrix c r) (aref matrix c r))
+                                      (when (member r artificial-var-rows)
+                                        (sum (aref art-matrix c r))))))
+                           ;copy rhs
+                           (let ((c (+ num-vars num-slack num-art)))
+                             (setf (aref art-matrix c num-slack)
+                                   (iter (for r from 0 below num-slack)
+                                     (setf (aref art-matrix c r)
+                                           (aref matrix (+ num-vars num-slack) r))
+                                     (when (member r artificial-var-rows)
+                                       (sum (aref art-matrix c r))))))
+                           (make-tableau :problem (make-instance 'artificial-linear-problem
+                                                                 :base-problem problem)
+                                         :matrix art-matrix
+                                         :basis-columns art-basis-columns
+                                         :var-count (+ num-vars num-slack num-art)
+                                         :constraint-count num-slack)))))
+      (if art-tableau
+        (list art-tableau main-tableau)
+        main-tableau))))
+
 
 (defun pivot-row (tableau entering-col changing-row)
   "Applies a single pivot to the table."
@@ -119,15 +175,26 @@
                                  (aref matrix entering-col i)))))))
 
 (defun solve-tableau (tableau)
-  "Attempts to solve the tableau using the simplex method."
-  (check-type tableau tableau)
-  (iter (for entering-column = (find-entering-column tableau))
-        (while entering-column)
-    (let ((pivoting-row (find-pivoting-row tableau entering-column)))
-      (unless pivoting-row
-        (error "Cannot find valid row to pivot.  Problem is likely unbound."))
-      (pivot-row tableau entering-column pivoting-row)))
-  tableau)
+  "Attempts to solve the tableau using the simplex method.  If a list of two
+   tableaus is given, then a two-phase version is used."
+  (cond
+    ((listp tableau)
+     (let ((solved-art-tab (solve-tableau (first tableau)))
+           (main-tab (second tableau)))
+       (iter (for i from 0 below (length (tableau-basis-columns solved-art-tab)))
+         (when (/= (aref (tableau-basis-columns solved-art-tab) i)
+                   (aref (tableau-basis-columns main-tab) i))
+           (pivot-row main-tab (aref (tableau-basis-columns solved-art-tab) i) i)))
+       (solve-tableau main-tab)))
+    ((tableau-p tableau)
+     (iter (for entering-column = (find-entering-column tableau))
+           (while entering-column)
+       (let ((pivoting-row (find-pivoting-row tableau entering-column)))
+         (unless pivoting-row
+           (error "Cannot find valid row to pivot.  Problem is likely unbound."))
+         (pivot-row tableau entering-column pivoting-row)))
+     tableau)
+    (t (error "~S is not a valid tableau" tableau))))
 
 (declaim (inline get-tableau-variable))
 (defun get-tableau-variable (var tableau)

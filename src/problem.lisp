@@ -7,6 +7,8 @@
   (:export #:make-linear-problem
            #:parse-linear-problem
 
+           #:min
+           #:max
            #:signed
            #:<=
            #:>=
@@ -28,7 +30,7 @@
 (defclass linear-problem ()
   ((type :reader lp-type
          :initarg :type
-         :type (member (:max :min)))
+         :type (member (max min)))
    (variables :reader variables
               :initarg :variables
               :type (vector symbol)
@@ -69,7 +71,7 @@
       ((null const)
        (list '<= sum 0))
       ((> const 0)
-       (list '>= (scale-linear-expression sum -1) (- const)))
+       (list '>= (scale-linear-expression sum -1) const))
       (t
        (list '<= sum (- const))))))
 
