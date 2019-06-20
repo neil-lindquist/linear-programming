@@ -37,7 +37,7 @@
 
 (defun build-tableau (problem)
   "Creates the tableau from the given linear problem."
-  (when (/= (length (non-neg-vars problem)) (length (variables problem)))
+  (when (/= 0 (length (signed-vars problem)))
     (error "Cannot currently handle possibly negative variables."))
   (let* ((num-slack (length (constraints problem)))
          (vars (variables problem))

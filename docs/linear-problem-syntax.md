@@ -4,7 +4,7 @@ It takes an *optimization-problem* form, followed by the *constraint* forms, bot
 
 *optimization-problem* = (min|max *linear-expression*)  
 *constraint* = *inequality-constraint* | *positivity-constraint*  
-*positivity-contraint* = (non-neg *var*\*)  
+*positivity-contraint* = (signed *var*\*)  
 *inequality-constraint* = (<=|<|>=|> *linear-expression*\*)  
 *linear-expression* = *var* | *number* | (\* *var* *number*) | (\* *number* *var*) | (\* *number* *number*) | (+ *linear-expression*\*)
 

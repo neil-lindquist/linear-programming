@@ -7,7 +7,7 @@
   (:export #:make-linear-problem
            #:parse-linear-problem
 
-           #:non-neg
+           #:signed
            #:<=
            #:>=
            #:<
@@ -19,7 +19,7 @@
            #:lp-type
            #:variables
            #:objective-function
-           #:non-neg-vars
+           #:signed-vars
            #:constraints))
 
 (in-package :linear-programming/problem)
@@ -36,8 +36,8 @@
               :initarg :objective
               :type list
               :documentation "A linear expression for the objective function")
-   (non-neg-vars :reader non-neg-vars
-                 :initarg :non-neg
+   (signed-vars :reader signed-vars
+                 :initarg :signed
                  :type list
                  :documentation "A list of variables that are non negative")
    (constraints :reader constraints
@@ -68,7 +68,7 @@
 
 (defun parse-linear-constraints (exprs)
   "Parses the list of constraints and returns a list containing a list of simple
-   inequalities and a list of non-negative variables"
+   inequalities and a list of signed variables"
   (iter (for expr in exprs)
     (case (first expr)
       ((<= <)
@@ -77,9 +77,9 @@
       ((>= >)
        (collect (cons '<= (reverse (mapcar 'parse-linear-expression (rest expr))))
                 into equalities))
-      ((non-neg)
+      ((signed)
        (unioning (rest expr)
-                 into non-negs))
+                 into signed))
       (t (error "~A is not a valid constraint" expr)))
     (finally
       (let* ((split-eqs (reduce 'append
@@ -91,7 +91,7 @@
                                                            (nth i constraint)))))))
              (simple-eqs (mapcar 'simplify-equality
                                  split-eqs)))
-        (return (list simple-eqs non-negs))))))
+        (return (list simple-eqs signed))))))
 
 
 (defun parse-linear-problem (objective constraints)
@@ -102,10 +102,10 @@
          (objective-function (parse-linear-expression (second objective)))
          (parsed-constraints (parse-linear-constraints constraints))
          (eq-constraints (first parsed-constraints))
-         (bound-constraints (second parsed-constraints))
+         (signed-constraints (second parsed-constraints))
          (var-list (union
                      (union (mapcar 'car objective-function)
-                            bound-constraints)
+                            signed-constraints)
                      (reduce (lambda (l1 l2) (union l1 (mapcar 'car l2)))
                              eq-constraints
                              :key (compose 'second)
@@ -117,7 +117,7 @@
                    :type type
                    :variables variables
                    :objective objective-function
-                   :non-neg bound-constraints
+                   :signed signed-constraints
                    :constraints eq-constraints)))
 
 

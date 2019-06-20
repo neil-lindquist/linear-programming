@@ -40,8 +40,7 @@
                                            0)
                                        ; resource constraints
                                        (<= (+ (* 8 d1) (* 5 d2) (* 3 d3)) 100)
-                                       (<= (+ (* 6 d1) (* 9 d2) (* 8 d3)) 200)
-                                       (non-neg widgets d1 d2 d3)))
+                                       (<= (+ (* 6 d1) (* 9 d2) (* 8 d3)) 200)))
          (tableau (solve-tableau (build-tableau problem))))
     (with-tableau-variables (widgets d1 d2 d3) tableau
 

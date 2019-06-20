@@ -17,8 +17,7 @@
 (test build-tableau
   (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
                                        (<= (+ (* 2 x) y) 8)
-                                       (<= (+ y z) 7)
-                                       (non-neg x y z)))
+                                       (<= (+ y z) 7)))
          (tableau (build-tableau problem)))
     (is-true (tableau-p tableau))
     (is (eq problem (tableau-problem tableau)))
@@ -32,8 +31,7 @@
 (test solve-tableau
   (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
                                        (<= (+ (* 2 x) y) 8)
-                                       (<= (+ y z) 7)
-                                       (non-neg x y z)))
+                                       (<= (+ y z) 7)))
          (tableau (build-tableau problem)))
     (is (eq tableau (solve-tableau tableau)))
     (is (eq problem (tableau-problem tableau)))
@@ -47,8 +45,7 @@
 (test with-tableau-variables
   (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
                                        (<= (+ (* 2 x) y) 8)
-                                       (<= (+ y z) 7)
-                                       (non-neg x y z)))
+                                       (<= (+ y z) 7)))
          (tableau (solve-tableau (build-tableau problem))))
     (with-tableau-variables (x y z) tableau
       (is (= 1/2 x))
