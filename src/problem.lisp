@@ -14,6 +14,7 @@
            #:>=
            #:<
            #:>
+           #:=
            #:+
            #:*
 
@@ -53,9 +54,9 @@
                 :type list
                 :documentation "A list of simple inequality contraints")))
 
-(declaim (inline simple-leq))
-(defun simple-leq (exp1 exp2)
-  "Takes the rhs and lhs of a <= inequality and moves any constant to the rhs
+(declaim (inline simple-eq))
+(defun simple-eq (op exp1 exp2)
+  "Takes the rhs and lhs of an in/equality and moves any constant to the rhs
    as a number and any non-constant values to the lhs as a linear expression."
   (let* ((lin-exp (sum-linear-expressions
                       (list exp1
@@ -67,13 +68,17 @@
                       lin-exp
                       :test 'eq
                       :key 'car)))
-    (cond
-      ((null const)
-       (list '<= sum 0))
-      ((> const 0)
-       (list '>= (scale-linear-expression sum -1) const))
-      (t
-       (list '<= sum (- const))))))
+    (case op
+      (<= (cond
+            ((null const)
+             (list '<= sum 0))
+            ((> const 0)
+             (list '>= (scale-linear-expression sum -1) const))
+            (t
+             (list '<= sum (- const)))))
+      (= (if (null const)
+           (list '= sum 0)
+           (list '= sum (- const)))))))
 
 (defun parse-linear-constraints (exprs)
   "Parses the list of constraints and returns a list containing a list of simple
@@ -86,17 +91,22 @@
       ((>= >)
        (collect (cons '<= (reverse (mapcar 'parse-linear-expression (rest expr))))
                 into equalities))
+      ((=)
+       (collect (cons '= (mapcar 'parse-linear-expression (rest expr)))
+                into equalities))
       ((signed)
        (unioning (rest expr)
                  into signed))
       (t (error "~A is not a valid constraint" expr)))
     (finally
-      (let ((simple-eqs (reduce 'append
-                                 equalities
-                                 :key #'(lambda (constraint)
-                                          (iter (for i from 2 below (length constraint))
-                                            (collect (simple-leq (nth (1- i) constraint)
-                                                                 (nth i constraint))))))))
+      (let ((simple-eqs
+             (reduce 'append
+                      equalities
+                      :key #'(lambda (constraint)
+                               (iter (for i from 2 below (length constraint))
+                                 (collect (simple-eq (first constraint)
+                                                     (nth (1- i) constraint)
+                                                     (nth i constraint))))))))
         (return (list simple-eqs signed))))))
 
 

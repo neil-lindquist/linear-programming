@@ -5,7 +5,7 @@ It takes an *optimization-problem* form, followed by the *constraint* forms, bot
 *optimization-problem* = (min|max *linear-expression*) | (= *objective-variable* (min|max *linear-expression)) | (min|max (= *objective-variable* *linear-expression))  
 *constraint* = *inequality-constraint* | *positivity-constraint*  
 *positivity-contraint* = (signed *var*\*)  
-*inequality-constraint* = (<=|<|>=|> *linear-expression*\*)  
+*inequality-constraint* = (<=|<|>=|>|= *linear-expression*\*)  
 *linear-expression* = *var* | *number* | (\* *var* *number*) | (\* *number* *var*) | (\* *number* *number*) | (+ *linear-expression*\*)
 
 ### simple constraints

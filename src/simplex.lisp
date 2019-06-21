@@ -55,16 +55,17 @@
    two-phase simplex method."
   (when (/= 0 (length (signed-vars problem)))
     (error "Cannot currently handle possibly negative variables."))
-  (let* ((num-slack (length (constraints problem)))
+  (let* ((num-constraints (length (constraints problem)))
+         (num-slack (count-if-not (curry #'eq '=) (constraints problem) :key #'first))
          (vars (variables problem))
          (num-vars (length vars))
-         (matrix (make-array (list (+ num-vars num-slack 1) (1+ num-slack))
+         (matrix (make-array (list (+ num-vars num-slack 1) (1+ num-constraints))
                             :element-type 'real
                             :initial-element 0))
-         (basis-columns (make-array (list num-slack) :element-type `(integer 0 ,(+ num-vars num-slack 1))))
+         (basis-columns (make-array (list num-constraints) :element-type `(integer 0 ,(+ num-vars num-slack 1))))
          (artificial-var-rows nil))
     ; constraint rows
-    (iter (for row from 0 below num-slack)
+    (iter (for row from 0 below num-constraints)
           (for constraint in (constraints problem))
       ;variables
       (iter (for col from 0 below num-vars)
@@ -72,28 +73,30 @@
         (when-let (value (cdr (assoc var (second constraint))))
           (setf (aref matrix col row) value)))
       ;slack
-      (if (eq '<= (first constraint))
-        (setf (aref matrix (+ num-vars row) row) 1
-              (aref basis-columns row) (+ num-vars row))
-        (progn
-          (push row artificial-var-rows)
-          (setf (aref matrix (+ num-vars row) row) -1
-                (aref basis-columns row) (+ num-vars row))))
+      (case (first constraint)
+        (<= (setf (aref matrix (+ num-vars row) row) 1
+                  (aref basis-columns row) (+ num-vars row)))
+        (>= (push row artificial-var-rows)
+            (setf (aref matrix (+ num-vars row) row) -1
+                  (aref basis-columns row) (+ num-vars row)))
+        (= (push row artificial-var-rows)
+           (setf (aref basis-columns row) 0))
+        (t (error "~S is not a valid constraint equation" constraint)))
       ;rhs
       (setf (aref matrix (+ num-vars num-slack) row) (third constraint)))
     ;objective row
     (iter (for col from 0 below num-vars)
           (for var = (aref vars col))
       (when-let (value (cdr (assoc var (objective-function problem))))
-        (setf (aref matrix col num-slack) (- value))))
+        (setf (aref matrix col num-constraints) (- value))))
     (let ((main-tableau (make-tableau :problem problem
                                       :matrix matrix
                                       :basis-columns basis-columns
                                       :var-count (+ num-vars num-slack)
-                                      :constraint-count num-slack))
+                                      :constraint-count num-constraints))
           (art-tableau (when artificial-var-rows
                          (let* ((num-art (length artificial-var-rows))
-                                (art-matrix (make-array (list (+ num-vars num-slack num-art 1) (1+ num-slack))
+                                (art-matrix (make-array (list (+ num-vars num-slack num-art 1) (1+ num-constraints))
                                                         :element-type 'real
                                                         :initial-element 0))
                                 (art-basis-columns (copy-array basis-columns)))
@@ -105,15 +108,15 @@
 
                            ;copy coefficients
                            (iter (for c from 0 below (+ num-vars num-slack))
-                             (setf (aref art-matrix c num-slack)
-                                   (iter (for r from 0 below num-slack)
+                             (setf (aref art-matrix c num-constraints)
+                                   (iter (for r from 0 below num-constraints)
                                       (setf (aref art-matrix c r) (aref matrix c r))
                                       (when (member r artificial-var-rows)
                                         (sum (aref art-matrix c r))))))
                            ;copy rhs
                            (let ((c (+ num-vars num-slack num-art)))
-                             (setf (aref art-matrix c num-slack)
-                                   (iter (for r from 0 below num-slack)
+                             (setf (aref art-matrix c num-constraints)
+                                   (iter (for r from 0 below num-constraints)
                                      (setf (aref art-matrix c r)
                                            (aref matrix (+ num-vars num-slack) r))
                                      (when (member r artificial-var-rows)
@@ -123,7 +126,7 @@
                                          :matrix art-matrix
                                          :basis-columns art-basis-columns
                                          :var-count (+ num-vars num-slack num-art)
-                                         :constraint-count num-slack)))))
+                                         :constraint-count num-constraints)))))
       (if art-tableau
         (list art-tableau main-tableau)
         main-tableau))))
