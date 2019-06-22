@@ -19,7 +19,8 @@
            #:build-tableau
            #:solve-tableau
            #:get-tableau-variable
-           #:with-tableau-variables))
+           #:with-tableau-variables
+           #:get-shadow-price))
 
 (in-package :linear-programming/simplex)
 
@@ -213,6 +214,16 @@
               (tableau-var-count tableau)
               idx)
         0))))
+
+
+(defun get-shadow-price (var tableau)
+  "Gets the shadow price for the given variable from the tableau"
+  (if-let (idx (position var (variables (tableau-problem tableau))))
+    (aref (tableau-matrix tableau)
+          idx (tableau-constraint-count tableau))
+    (error "~S is not a variable in the tableau" var)))
+
+
 
 (defmacro with-tableau-variables (var-list tableau &body body)
   "Evaluates the body with the variables in `var-list` bound to their values in

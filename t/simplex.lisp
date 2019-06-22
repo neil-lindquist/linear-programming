@@ -173,3 +173,13 @@
              (is (= x 1/2))
              (is (= y 7))
              (is (= z 0))))))
+
+
+(test get-shadow-price
+  (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
+                                       (<= (+ (* 2 x) y) 8)
+                                       (<= (+ y z) 7)))
+         (tableau (solve-tableau (build-tableau problem))))
+    (is (= 0 (get-shadow-price 'x tableau)))
+    (is (= 0 (get-shadow-price 'y tableau)))
+    (is (= 1/2 (get-shadow-price 'z tableau)))))
