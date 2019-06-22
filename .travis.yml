@@ -15,11 +15,11 @@ env:
     - ROSWELL_INSTALL_DIR=$HOME/.roswell
   matrix:
     - LISP=sbcl-bin
-    - LISP=ccl-bin
+#    - LISP=ccl-bin
     - LISP=abcl
-    - LISP=clisp
+#    - LISP=clisp
     - LISP=ecl
-    - LISP=cmucl
+#    - LISP=cmucl
     - LISP=alisp
 
 matrix:
@@ -36,5 +36,5 @@ install:
 script:
   - ros -s linear-programming-test -e "(cl:in-package :cl-user)
            (ql:quickload :fiveam/test :verbose t)
-           (uiop:quit (if (5am:run 'linear-programming-test:linear-programming)
+           (uiop:quit (if (5am:run! 'linear-programming-test:linear-programming)
                           0 1))"
