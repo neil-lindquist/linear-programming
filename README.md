@@ -2,12 +2,12 @@
 
 This is a Common Lisp library for solving linear programming problems.
 
-### Installation
+## Installation
 As it is still in early development, the linear-programming library is not on Quicklisp.
 Instead, place the contents of this repository into `~/quicklisp/local-projects/linear-programming` (if you are not using quicklisp, place the `linear-programming` directory somewhere that ASDF can find it).
 Then, you can load it using `(ql:quickload :linear-programming)`.
 
-### Usage
+## Usage
 Consider the following linear programming problem.
 > maximize  x + 4y + 3z  
 > such that  
