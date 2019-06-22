@@ -18,6 +18,7 @@
 
            #:build-tableau
            #:solve-tableau
+           #:get-tableau-variable
            #:with-tableau-variables))
 
 (in-package :linear-programming/simplex)
@@ -201,6 +202,7 @@
 
 (declaim (inline get-tableau-variable))
 (defun get-tableau-variable (var tableau)
+  "Gets the value of the given variable from the tableau"
   (let* ((problem (tableau-problem tableau))
          (objective-var (objective-variable problem)))
     (if (eq var objective-var)

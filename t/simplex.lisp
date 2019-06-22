@@ -149,6 +149,15 @@
     (is (= 85/3 (tableau-objective-value main-tab)))))
 
 
+(test get-tableau-variable
+  (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
+                                       (<= (+ (* 2 x) y) 8)
+                                       (<= (+ y z) 7)))
+         (tableau (solve-tableau (build-tableau problem))))
+    (is (= 1/2 (get-tableau-variable 'x tableau)))
+    (is (= 7 (get-tableau-variable 'y tableau)))
+    (is (= 0 (get-tableau-variable 'z tableau)))))
+
 (test with-tableau-variables
   (let* ((problem (make-linear-problem (= w (max (+ x (* 4 y) (* 3 z))))
                                        (<= (+ (* 2 x) y) 8)
