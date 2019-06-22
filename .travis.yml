@@ -1,0 +1,40 @@
+language: common-lisp
+sudo: false
+
+#from https://github.com/roswell/roswell/wiki/Travis-CI
+
+addons:
+  apt:
+    packages:
+      - libc6-i386
+      - openjdk-7-jre
+
+env:
+  global:
+    - PATH=~/.roswell/bin:$PATH
+    - ROSWELL_INSTALL_DIR=$HOME/.roswell
+  matrix:
+    - LISP=sbcl-bin
+    - LISP=ccl-bin
+    - LISP=abcl
+    - LISP=clisp
+    - LISP=ecl
+    - LISP=cmucl
+    - LISP=alisp
+
+matrix:
+  fast_finish: true
+
+cache:
+  directories:
+    - $HOME/.roswell
+    - $HOME/.config/common-lisp
+
+install:
+  - curl -L https://raw.githubusercontent.com/roswell/roswell/release/scripts/install-for-ci.sh | sh
+
+script:
+  - ros -s linear-programming-test -e "(cl:in-package :cl-user)
+           (ql:quickload :fiveam/test :verbose t)
+           (uiop:quit (if (5am:run 'linear-programming-test:linear-programming)
+                          0 1))"
