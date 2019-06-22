@@ -1,5 +1,6 @@
 # Common Lisp Linear Programming
 [![Build Status](https://travis-ci.org/neil-lindquist/linear-programming.svg?branch=master)](https://travis-ci.org/neil-lindquist/linear-programming)
+[![Coverage Status](https://coveralls.io/repos/github/neil-lindquist/linear-programming/badge.svg?branch=master)](https://coveralls.io/github/neil-lindquist/linear-programming?branch=master)
 
 
 This is a Common Lisp library for solving linear programming problems.

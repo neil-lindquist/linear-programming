@@ -14,13 +14,13 @@ env:
     - PATH=~/.roswell/bin:$PATH
     - ROSWELL_INSTALL_DIR=$HOME/.roswell
   matrix:
-    - LISP=sbcl-bin
-#    - LISP=ccl-bin
-    - LISP=abcl
-#    - LISP=clisp
-    - LISP=ecl
+    - LISP=sbcl-bin COVERALLS=true
+#    - LISP=abcl
+#    - LISP=ecl
+#    - LISP=alisp
 #    - LISP=cmucl
-    - LISP=alisp
+#    - LISP=clisp
+#    - LISP=ccl-bin
 
 matrix:
   fast_finish: true
@@ -34,7 +34,7 @@ install:
   - curl -L https://raw.githubusercontent.com/roswell/roswell/release/scripts/install-for-ci.sh | sh
 
 script:
-  - ros -s linear-programming-test -e "(cl:in-package :cl-user)
-           (ql:quickload :fiveam/test :verbose t)
-           (uiop:quit (if (5am:run! 'linear-programming-test:linear-programming)
-                          0 1))"
+  - ros -s fiveam -s cl-coveralls -e "
+             (coveralls:with-coveralls (:exclude \"t\")
+                 (unless (5am:run! (intern \"LINEAR-PROGRAMMING\" :linear-programming-test/all))
+                     (uiop:quit 1)))"
