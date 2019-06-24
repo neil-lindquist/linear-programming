@@ -15,12 +15,12 @@ env:
     - ROSWELL_INSTALL_DIR=$HOME/.roswell
   matrix:
     - LISP=sbcl-bin COVERALLS=true
-#    - LISP=abcl
-#    - LISP=ecl
-#    - LISP=alisp
-#    - LISP=cmucl
-#    - LISP=clisp
-#    - LISP=ccl-bin
+    - LISP=abcl
+    - LISP=ecl
+    - LISP=alisp
+#    - LISP=ccl-bin #package inferred system causing a crash
+#    - LISP=cmucl #crashes in a quicklisp load
+#    - LISP=clisp #fails to download
 
 matrix:
   fast_finish: true
@@ -34,7 +34,4 @@ install:
   - curl -L https://raw.githubusercontent.com/roswell/roswell/release/scripts/install-for-ci.sh | sh
 
 script:
-  - ros -s fiveam -s cl-coveralls -e "
-             (coveralls:with-coveralls (:exclude \"t\")
-                 (unless (5am:run! (intern \"LINEAR-PROGRAMMING\" :linear-programming-test/all))
-                     (uiop:quit 1)))"
+  - roswell/run-fiveam.ros -e t linear-programming-test:linear-programming
