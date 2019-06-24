@@ -49,6 +49,8 @@
 (defmethod lp-type ((problem artificial-linear-problem))
   (declare (ignore problem))
   'min)
+(defmethod variables ((problem artificial-linear-problem))
+  (variables (base-problem problem)))
 
 
 (defun build-tableau (problem)
@@ -80,9 +82,9 @@
                   (aref basis-columns row) (+ num-vars row)))
         (>= (push row artificial-var-rows)
             (setf (aref matrix (+ num-vars row) row) -1
-                  (aref basis-columns row) (+ num-vars row)))
+                  (aref basis-columns row) (+ num-vars num-slack)))
         (= (push row artificial-var-rows)
-           (setf (aref basis-columns row) 0))
+           (setf (aref basis-columns row) (+ num-vars num-slack)))
         (t (error "~S is not a valid constraint equation" constraint)))
       ;rhs
       (setf (aref matrix (+ num-vars num-slack) row) (third constraint)))
