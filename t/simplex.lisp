@@ -15,6 +15,7 @@
 (in-suite simplex)
 
 (test build-tableau
+  (declare (notinline tableau-objective-value)) ; for coverage purposes
   (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
                                        (<= (+ (* 2 x) y) 8)
                                        (<= (+ y z) 7)))
@@ -150,6 +151,7 @@
 
 
 (test get-tableau-variable
+  (declare (notinline get-tableau-variable))
   (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
                                        (<= (+ (* 2 x) y) 8)
                                        (<= (+ y z) 7)))

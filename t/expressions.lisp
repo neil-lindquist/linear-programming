@@ -15,6 +15,7 @@
 (in-suite expressions)
 
 (test scale-linear-expression
+  (declare (notinline scale-linear-expression))
   (is (equal '((a . 24) (b . 7/2) (c . 4.5))
              (scale-linear-expression '((a . 8) (b . 7/6) (c . 1.5))
                                       3)))
@@ -25,6 +26,7 @@
                                       1/2))))
 
 (test sum-linear-expressions
+  (declare (notinline sum-linear-expressions))
   (is (eq nil (sum-linear-expressions nil)))
   (is (eq nil (sum-linear-expressions (list nil))))
   (is (eq nil (sum-linear-expressions (list nil nil))))
