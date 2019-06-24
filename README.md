@@ -7,8 +7,9 @@ This is a Common Lisp library for solving linear programming problems.
 
 ## Installation
 As it is still in early development, the linear-programming library is not on Quicklisp.
-Instead, place the contents of this repository into `~/quicklisp/local-projects/linear-programming` (if you are not using quicklisp, place the `linear-programming` directory somewhere that ASDF can find it).
+Instead, place the contents of this repository into `~/quicklisp/local-projects/linear-programming`.
 Then, you can load it using `(ql:quickload :linear-programming)`.
+If you are not using quicklisp, place the repository somewhere where ASDF can find it, then load it with `(asdf:load-system :linear-programming)`.
 
 ## Usage
 Consider the following linear programming problem.
