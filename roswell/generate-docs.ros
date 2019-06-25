@@ -1,0 +1,93 @@
+#!/bin/sh
+#|-*- mode:lisp -*-|#
+#|
+exec ros -Q -- $0 "$@"
+|#
+
+#-sbcl (error "Documentation is designed to be build on SBCL")
+
+(ql:quickload '(:cl-ppcre :copy-directory))
+(require 'sb-introspect)
+
+(defun sanitize-symbol (s)
+  (cl-ppcre:regex-replace-all "\\*" (string s) "\\*"))
+
+(defun doc-print (stream type name args doc)
+  (format stream "**~A** - ~A ~@[~A~]~
+                  ~@[  ~%~A~]~%~%"
+          (sanitize-symbol type) (sanitize-symbol name) (mapcar #'sanitize-symbol args) doc))
+
+(defgeneric print-documentation (type name stream)
+  (:documentation "Outputs the documentation for the named system"))
+
+(defmethod print-documentation ((_ (eql 'macro)) name stream)
+  (doc-print stream "MACRO" name (sb-introspect:function-lambda-list name)
+                    (documentation name 'function)))
+
+(defmethod print-documentation ((_ (eql 'function)) name stream)
+  (doc-print stream
+          (if (typep (symbol-function name) 'standard-generic-function)
+            "GENERIC"
+            "FUNCTION")
+          name
+          (sb-introspect:function-lambda-list name)
+          (documentation name 'function)))
+
+(defmethod print-documentation ((_ (eql 'variable)) name stream)
+  (doc-print stream 'variable name nil (documentation name 'variable)))
+
+(defmethod print-documentation ((_ (eql 'class)) name stream)
+  (doc-print stream (if (typep (find-class name) 'standard-class)
+                      "CLASS"
+                      "STRUCT")
+                    name nil (documentation (find-class name) t)))
+
+(defmethod print-documentation ((_ (eql 'package)) name stream)
+  (format stream "### ")
+  (doc-print stream 'package name nil (documentation (find-package name) t)))
+
+(defmethod symbol-bound-p ((_ (eql 'function)) symbol)
+  (fboundp symbol))
+(defmethod symbol-bound-p ((_ (eql 'macro)) symbol)
+  (macro-function symbol))
+(defmethod symbol-bound-p ((_ (eql 'class)) symbol)
+  (find-class symbol nil))
+(defmethod symbol-bound-p ((_ (eql 'variable)) symbol)
+  (boundp symbol))
+
+
+(defun print-package-documentation (package stream)
+  "Prints the documentation for the package"
+  (print-documentation 'package package stream)
+  (do-external-symbols (symbol package)
+    (dolist (type '(function macro class variable))
+      (when (and (not (eq (symbol-package symbol) #.(find-package 'cl)))
+                 (symbol-bound-p type symbol))
+        (print-documentation type symbol stream)))))
+
+
+(defun main (&rest argv)
+  (declare (ignore argv))
+  ; clear any previous build
+  (loop :for file :in (uiop:directory-files "docs-bin/")
+    :do (uiop:delete-file-if-exists file))
+
+  ; copy the content of docs/
+  (copy-directory:copy (uiop:ensure-absolute-pathname "docs/" (uiop:getcwd))
+                       (uiop:ensure-absolute-pathname "docs-bin/" (uiop:getcwd)))
+
+  (ql:quickload :linear-programming)
+  ; generate API.md
+  (with-open-file (stream "docs-bin/API.md"
+                   :direction :output
+                   :external-format :utf-8)
+
+    (unless (documentation (find-package 'linear-programming) t)
+      (setf (documentation (find-package 'linear-programming) t)
+            "The overall package.  Reexports symbols from
+             LINEAR-PROGRAMMING/PROBLEM and LINEAR-PROGRAMMING/SIMPLEX."))
+    (print-documentation 'package 'linear-programming stream)
+
+    (print-package-documentation 'linear-programming/simplex stream)
+    (print-package-documentation 'linear-programming/problem stream)
+    (print-package-documentation 'linear-programming/expressions stream)))

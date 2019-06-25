@@ -14,7 +14,7 @@ env:
     - PATH=~/.roswell/bin:$PATH
     - ROSWELL_INSTALL_DIR=$HOME/.roswell
   matrix:
-    - LISP=sbcl-bin COVERALLS=true
+    - LISP=sbcl-bin COVERALLS=true DOCS=true
     - LISP=abcl
     - LISP=ecl
     - LISP=alisp
@@ -35,3 +35,16 @@ install:
 
 script:
   - roswell/run-fiveam.ros -e t linear-programming-test:linear-programming
+
+before_deploy:
+  - roswell/generate-docs.ros
+
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token: $GITHUB_TOKEN
+  keep_history: true
+  local_dir: docs-bin
+  on:
+    branch: master
+    condition: $DOCS = true
