@@ -1,7 +1,7 @@
 
 (defsystem "linear-programming"
   :description "A library for solving linear programming problems"
-  :version "0.0.1"
+  :version "0.1.0"
   :author "Neil Lindquist <NeilLindquist5@gmail.com>"
   :licence "MIT"
   :class :package-inferred-system
