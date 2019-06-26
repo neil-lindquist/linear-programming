@@ -24,7 +24,7 @@ description: Documentation for the linear-programming Common Lisp Library
 # List of links in the navigation bar
 navbar-links:
   API Documentation: "API"
-  DSL Syntax: "linear-problem-syntax.md"
+  DSL Syntax: "linear-problem-syntax"
 
 # Image to show in the navigation bar - image must be a square (width = height)
 # Remove this parameter if you don't want an image in the navbar

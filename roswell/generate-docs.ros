@@ -82,6 +82,14 @@ exec ros -Q -- $0 "$@"
                    :direction :output
                    :external-format :utf-8)
 
+    (format stream "---~%~
+                    layout: page~%~
+                    title: API Documentation~%~
+                    meta-description: The API Documentation for the ~
+                    linear-programming Common Lisp library.~%~
+                    ---~%~%~%")
+
+
     (unless (documentation (find-package 'linear-programming) t)
       (setf (documentation (find-package 'linear-programming) t)
             "The overall package.  Reexports symbols from

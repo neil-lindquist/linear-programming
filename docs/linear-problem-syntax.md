@@ -1,3 +1,9 @@
+---
+layout: page
+title: Linear Problem DSL
+meta-description: The specification of the Linear Programming Problem DSL
+---
+
 `make-linear-problem` uses a basic DSL to describe the linear-problem to assemble.
 It takes an *optimization-problem* form, followed by the *constraint* forms, both of which are described by the following grammar.
 Additionally, `parse-linear-problem` uses the same grammar for its arguments.
