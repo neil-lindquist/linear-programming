@@ -18,18 +18,29 @@
 
            #:build-tableau
            #:solve-tableau
+           #:n-solve-tableau
            #:get-tableau-variable
            #:with-tableau-variables
            #:get-shadow-price))
 
 (in-package :linear-programming/simplex)
 
-(defstruct tableau
+(defstruct (tableau (:copier #:shallow-tableau-copy))
   (problem nil :read-only t :type (or linear-problem artificial-linear-problem))
   (matrix #2A() :read-only t :type (simple-array real 2))
   (basis-columns #() :read-only t :type (simple-array * (*)))
   (var-count 0 :read-only t :type (integer 0 *))
   (constraint-count 0 :read-only t :type (integer 0 *)))
+
+(declaim (inline tableau-objective-value))
+(defun copy-tableau (tableau)
+  "Copies the given tableau and it's matrix"
+  (declare (optimize (speed 3)))
+  (make-tableau :problem (tableau-problem tableau)
+                :matrix (copy-array (tableau-matrix tableau))
+                :basis-columns (copy-array (tableau-basis-columns tableau))
+                :var-count (tableau-var-count tableau)
+                :constraint-count (tableau-constraint-count tableau)))
 
 (declaim (inline tableau-objective-value))
 (defun tableau-objective-value (tableau)
@@ -137,7 +148,7 @@
 
 
 (defun pivot-row (tableau entering-col changing-row)
-  "Applies a single pivot to the table."
+  "Destructively applies a single pivot to the table."
   (declare (type unsigned-byte entering-col changing-row))
   (let* ((matrix (tableau-matrix tableau))
          (col-count (array-dimension matrix 0))
@@ -183,16 +194,23 @@
 
 (defun solve-tableau (tableau)
   "Attempts to solve the tableau using the simplex method.  If a list of two
-   tableaus is given, then a two-phase version is used."
+   tableaus is given, then a two-phase version is used.
+   The original tableau is unchanged"
+  (if (listp tableau)
+    (n-solve-tableau (mapcar #'copy-tableau tableau))
+    (n-solve-tableau (copy-tableau tableau))))
+
+(defun n-solve-tableau (tableau)
+  "A non-consing version of `solve-tableau`."
   (cond
     ((listp tableau)
-     (let ((solved-art-tab (solve-tableau (first tableau)))
+     (let ((solved-art-tab (n-solve-tableau (first tableau)))
            (main-tab (second tableau)))
        (iter (for i from 0 below (length (tableau-basis-columns solved-art-tab)))
          (when (/= (aref (tableau-basis-columns solved-art-tab) i)
                    (aref (tableau-basis-columns main-tab) i))
            (pivot-row main-tab (aref (tableau-basis-columns solved-art-tab) i) i)))
-       (solve-tableau main-tab)))
+       (n-solve-tableau main-tab)))
     ((tableau-p tableau)
      (iter (for entering-column = (find-entering-column tableau))
            (while entering-column)

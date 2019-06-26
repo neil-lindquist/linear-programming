@@ -116,12 +116,28 @@
     (is (equalp #(3 4 6) (tableau-basis-columns main-tableau)))
     (is (= 0 (tableau-objective-value main-tableau)))))
 
-(test solve-tableau
+(def-suite solve-tableau
+  :in simplex
+  :description "The suite to test solve-tableau and n-solve-tableau")
+(in-suite solve-tableau)
+
+(test basic-problem
   (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
                                        (<= (+ (* 2 x) y) 8)
                                        (<= (+ y z) 7)))
-         (tableau (build-tableau problem)))
-    (is (eq tableau (solve-tableau tableau)))
+         (tableau (build-tableau problem))
+         (tableau2 (solve-tableau tableau)))
+    (is (not (eq tableau tableau2))) ;ensure a new copy was allocated
+    (is (= 0 (tableau-objective-value tableau))) ;ensure original not solved
+    (is (eq tableau (n-solve-tableau tableau)))
+
+    (is-true (tableau-p tableau2))
+    (is (eq problem (tableau-problem tableau2)))
+    (is (equalp (tableau-matrix tableau) (tableau-matrix tableau2)))
+    (is (equalp (tableau-basis-columns tableau) (tableau-basis-columns tableau2)))
+    (is (= 5 (tableau-var-count tableau2)))
+    (is (= 2 (tableau-constraint-count tableau2)))
+
     (is (eq problem (tableau-problem tableau)))
     (is (equal 5 (tableau-var-count tableau)))
     (is (equal 2 (tableau-constraint-count tableau)))
@@ -129,17 +145,29 @@
                               #(x y z)
                               tableau))
     (is (equalp (vars-to-cols #(x y) tableau) (tableau-basis-columns tableau)))
-    (is (= 57/2 (tableau-objective-value tableau))))
+    (is (= 57/2 (tableau-objective-value tableau)))))
 
-
+(test equality-constraint
   (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
                                        (<= (+ (* 2 x) y) 8)
                                        (<= (+ y z) 7)
                                        (= (+ (* 2 x) y z) 8)))
          (tableaus (build-tableau problem))
          (art-tab (first tableaus))
-         (main-tab (second tableaus)))
-    (is (eq main-tab (solve-tableau tableaus)))
+         (main-tab (second tableaus))
+         (tab2 (solve-tableau tableaus)))
+
+    (is (not (eq art-tab tab2)))
+    (is (not (eq main-tab tab2)))
+
+    (is (eq main-tab (n-solve-tableau tableaus)))
+
+    (is-true (tableau-p tab2))
+    (is (eq problem (tableau-problem tab2)))
+    (is (equalp (tableau-matrix main-tab) (tableau-matrix tab2)))
+    (is (equalp (tableau-basis-columns main-tab) (tableau-basis-columns tab2)))
+    (is (equal 5 (tableau-var-count tab2)))
+    (is (equal 3 (tableau-constraint-count tab2)))
 
     ; art-tableau
     (is (eq 'min (lp-type (tableau-problem art-tab))))
@@ -159,8 +187,9 @@
                               #(x y z)
                               main-tab))
     (is (equalp (vars-to-cols #(x y z) main-tab) (tableau-basis-columns main-tab)))
-    (is (= 57/2 (tableau-objective-value main-tab))))
+    (is (= 57/2 (tableau-objective-value main-tab)))))
 
+(test leq-constraint
   (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
                                        (<= (+ (* 2 x) y) 8)
                                        (<= (+ y z) 7)
@@ -168,7 +197,7 @@
          (tableaus (build-tableau problem))
          (art-tab (first tableaus))
          (main-tab (second tableaus)))
-    (is (eq main-tab (solve-tableau tableaus)))
+    (is (eq main-tab (n-solve-tableau tableaus)))
 
     ; art-tableau
     (is (eq 'min (lp-type (tableau-problem art-tab))))
@@ -197,12 +226,29 @@
                  (equalp (vars-to-cols #(x y z) main-tab) (tableau-basis-columns main-tab)))))
     (is (= 85/3 (tableau-objective-value main-tab)))))
 
+(in-suite simplex)
+
+(test copy-tableau
+  (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
+                                       (<= (+ (* 2 x) y) 8)
+                                       (<= (+ y z) 7)))
+         (tableau1 (build-tableau problem))
+         (tableau2 (copy-tableau tableau1)))
+    (is (not (eq tableau1 tableau2)))
+    (is (eq (tableau-problem tableau1) (tableau-problem tableau2)))
+    (is (not (eq (tableau-matrix tableau1) (tableau-matrix tableau2))))
+    (is (equalp  (tableau-matrix tableau1) (tableau-matrix tableau2)))
+    (is (not (eq (tableau-basis-columns tableau1) (tableau-basis-columns tableau2))))
+    (is (equalp  (tableau-basis-columns tableau1) (tableau-basis-columns tableau2)))
+    (is (= (tableau-var-count tableau1) (tableau-var-count tableau2)))
+    (is (= (tableau-constraint-count tableau1) (tableau-constraint-count tableau2)))))
+
 (test get-tableau-variable
   (declare (notinline get-tableau-variable))
   (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
                                        (<= (+ (* 2 x) y) 8)
                                        (<= (+ y z) 7)))
-         (tableau (solve-tableau (build-tableau problem))))
+         (tableau (n-solve-tableau (build-tableau problem))))
     (is (= 1/2 (get-tableau-variable 'x tableau)))
     (is (= 7 (get-tableau-variable 'y tableau)))
     (is (= 0 (get-tableau-variable 'z tableau)))))
@@ -211,7 +257,7 @@
   (let* ((problem (make-linear-problem (= w (max (+ x (* 4 y) (* 3 z))))
                                        (<= (+ (* 2 x) y) 8)
                                        (<= (+ y z) 7)))
-         (tableau (solve-tableau (build-tableau problem))))
+         (tableau (n-solve-tableau (build-tableau problem))))
     (with-tableau-variables (x y z w) tableau
       (is (= 57/2 w))
       (is (= 1/2 x))
@@ -228,7 +274,7 @@
   (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
                                        (<= (+ (* 2 x) y) 8)
                                        (<= (+ y z) 7)))
-         (tableau (solve-tableau (build-tableau problem))))
+         (tableau (n-solve-tableau (build-tableau problem))))
     (is (= 0 (get-shadow-price 'x tableau)))
     (is (= 0 (get-shadow-price 'y tableau)))
     (is (= 1/2 (get-shadow-price 'z tableau)))))
