@@ -37,9 +37,11 @@ exec ros -Q -- $0 "$@"
   (doc-print stream 'variable name nil (documentation name 'variable)))
 
 (defmethod print-documentation ((_ (eql 'class)) name stream)
-  (doc-print stream (if (typep (find-class name) 'standard-class)
-                      "CLASS"
-                      "STRUCT")
+  (doc-print stream (typecase (find-class name)
+                      (standard-class "CLASS")
+                      (structure-class "STRUCT")
+                      (condition-class "CONDITION")
+                      (t (error "Unknown class type ~A for ~A" (type-of (find-class name)) (find-class name))))
                     name nil (documentation (find-class name) t)))
 
 (defmethod print-documentation ((_ (eql 'package)) name stream)
@@ -93,10 +95,12 @@ exec ros -Q -- $0 "$@"
     (unless (documentation (find-package 'linear-programming) t)
       (setf (documentation (find-package 'linear-programming) t)
             "The overall package.  Reexports symbols from
-             LINEAR-PROGRAMMING/PROBLEM and LINEAR-PROGRAMMING/SOLVER."))
+             LINEAR-PROGRAMMING/PROBLEM, LINEAR-PROGRAMMING/SOLVER and
+             LINEAR-PROGRAMMING/CONDITIONS."))
     (print-documentation 'package 'linear-programming stream)
 
     (print-package-documentation 'linear-programming/problem stream)
     (print-package-documentation 'linear-programming/solver)
+    (print-package-documentation 'linear-programming/conditions)
     (print-package-documentation 'linear-programming/simplex stream)
     (print-package-documentation 'linear-programming/expressions stream)))
