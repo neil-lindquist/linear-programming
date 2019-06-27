@@ -14,7 +14,7 @@
            #:tableau-constraint-count
            #:tableau-objective-value
 
-           #:pivot-row
+           #:n-pivot-row
 
            #:build-tableau
            #:solve-tableau
@@ -148,6 +148,10 @@
 
 
 (defun pivot-row (tableau entering-col changing-row)
+  "Non-destructively applies a single pivot to the table."
+  (n-pivot-row (copy-tableau tableau) entering-col changing-row))
+
+(defun n-pivot-row (tableau entering-col changing-row)
   "Destructively applies a single pivot to the table."
   (declare (type unsigned-byte entering-col changing-row))
   (let* ((matrix (tableau-matrix tableau))
@@ -209,7 +213,7 @@
        (iter (for i from 0 below (length (tableau-basis-columns solved-art-tab)))
          (when (/= (aref (tableau-basis-columns solved-art-tab) i)
                    (aref (tableau-basis-columns main-tab) i))
-           (pivot-row main-tab (aref (tableau-basis-columns solved-art-tab) i) i)))
+           (n-pivot-row main-tab (aref (tableau-basis-columns solved-art-tab) i) i)))
        (n-solve-tableau main-tab)))
     ((tableau-p tableau)
      (iter (for entering-column = (find-entering-column tableau))
@@ -217,7 +221,7 @@
        (let ((pivoting-row (find-pivoting-row tableau entering-column)))
          (unless pivoting-row
            (error "Cannot find valid row to pivot.  Problem is likely unbound."))
-         (pivot-row tableau entering-column pivoting-row)))
+         (n-pivot-row tableau entering-column pivoting-row)))
      tableau)
     (t (error "~S is not a valid tableau" tableau))))
 
