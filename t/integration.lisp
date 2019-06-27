@@ -27,28 +27,30 @@
   ; number of widgets produced."
   ; Additionally, widgets are sold at $3 per unit to increase the coverage of
   ; this test.
-  (let* ((problem (make-linear-problem (= revenue (max (* 3 widgets)))
-                                       ; construction of widgets
-                                       (<= (+ (* 4 widgets) (* -7 d1)
-                                              (* -6 d2) (* -8 d3))
-                                           0)
-                                       (<= (+ (* 3 widgets) (* -5 d1)
-                                              (* -9 d2) (* -4 d3))
-                                           0)
-                                       ; resource constraints
-                                       (<= (+ (* 8 d1) (* 5 d2) (* 3 d3)) 100)
-                                       (<= (+ (* 6 d1) (* 9 d2) (* 8 d3)) 200)))
-         (tableau (solve-tableau (build-tableau problem))))
-    (with-tableau-variables (revenue widgets d1 d2 d3) tableau
+  (with-solved-problem ((= revenue (max (* 3 widgets)))
+                        ; construction of widgets
+                        (<= (+ (* 4 widgets) (* -7 d1)
+                               (* -6 d2) (* -8 d3))
+                            0)
+                        (<= (+ (* 3 widgets) (* -5 d1)
+                               (* -9 d2) (* -4 d3))
+                            0)
+                        ; resource constraints
+                        (<= (+ (* 8 d1) (* 5 d2) (* 3 d3)) 100)
+                        (<= (+ (* 6 d1) (* 9 d2) (* 8 d3)) 200))
 
-      (is (<= 136.08 revenue 136.11)
-          (format nil "Computed revenue of ~A, instead of 136.08-136.11"
-                      (float revenue)))
-      (is (<= 45.36 widgets 45.37)
-          (format nil "Computed ~A widgets, instead of 45.36-45.37" (float widgets)))
-      (is (<= 2.37 d1 2.38)
-          (format nil "Computed ~A dept 1 runs, instead of 2.37-2.38" (float d1)))
-      (is (<= 6.96 d2 6.97)
-          (format nil "Computed ~A dept 2 runs, instead of 6.96-6.97" (float d2)))
-      (is (<= 15.37 d3 15.38)
-          (format nil "Computed ~A dept 2 runs, instead of 15.37-15.38" (float d3))))))
+    (is (<= 136.08 revenue 136.11)
+        (format nil "Computed revenue of ~A, instead of 136.08-136.11"
+                    (float revenue)))
+    (is (<= 45.36 widgets 45.37)
+        (format nil "Computed ~A widgets, instead of 45.36-45.37" (float widgets)))
+    (is (= 0 (shadow-price widgets)))
+    (is (<= 2.37 d1 2.38)
+        (format nil "Computed ~A dept 1 runs, instead of 2.37-2.38" (float d1)))
+    (is (= 0 (shadow-price d1)))
+    (is (<= 6.96 d2 6.97)
+        (format nil "Computed ~A dept 2 runs, instead of 6.96-6.97" (float d2)))
+    (is (= 0 (shadow-price d2)))
+    (is (<= 15.37 d3 15.38)
+        (format nil "Computed ~A dept 3 runs, instead of 15.37-15.38" (float d3)))
+    (is (= 0 (shadow-price d3)))))

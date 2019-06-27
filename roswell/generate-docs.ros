@@ -93,9 +93,10 @@ exec ros -Q -- $0 "$@"
     (unless (documentation (find-package 'linear-programming) t)
       (setf (documentation (find-package 'linear-programming) t)
             "The overall package.  Reexports symbols from
-             LINEAR-PROGRAMMING/PROBLEM and LINEAR-PROGRAMMING/SIMPLEX."))
+             LINEAR-PROGRAMMING/PROBLEM and LINEAR-PROGRAMMING/SOLVER."))
     (print-documentation 'package 'linear-programming stream)
 
-    (print-package-documentation 'linear-programming/simplex stream)
     (print-package-documentation 'linear-programming/problem stream)
+    (print-package-documentation 'linear-programming/solver)
+    (print-package-documentation 'linear-programming/simplex stream)
     (print-package-documentation 'linear-programming/expressions stream)))
