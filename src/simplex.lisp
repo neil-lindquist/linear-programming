@@ -3,6 +3,7 @@
   (:use :cl
         :alexandria
         :iterate
+        :linear-programming/conditions
         :linear-programming/problem)
   (:export #:tableau
            #:tableau-p
@@ -96,7 +97,8 @@
                   (aref basis-columns row) (+ num-vars num-slack)))
         (= (push row artificial-var-rows)
            (setf (aref basis-columns row) (+ num-vars num-slack)))
-        (t (error "~S is not a valid constraint equation" constraint)))
+        (t (error 'parsing-error
+                  :description (format nil "~S is not a valid constraint equation" constraint))))
       ;rhs
       (setf (aref matrix (+ num-vars num-slack) row) (third constraint)))
     ;objective row
@@ -210,6 +212,8 @@
     ((listp tableau)
      (let ((solved-art-tab (n-solve-tableau (first tableau)))
            (main-tab (second tableau)))
+       (unless (= 0 (tableau-objective-value solved-art-tab))
+         (error 'infeasible-problem-error))
        (iter (for i from 0 below (length (tableau-basis-columns solved-art-tab)))
          (when (/= (aref (tableau-basis-columns solved-art-tab) i)
                    (aref (tableau-basis-columns main-tab) i))
@@ -220,10 +224,10 @@
            (while entering-column)
        (let ((pivoting-row (find-pivoting-row tableau entering-column)))
          (unless pivoting-row
-           (error "Cannot find valid row to pivot.  Problem is likely unbound."))
+           (error 'unbounded-problem-error))
          (n-pivot-row tableau entering-column pivoting-row)))
      tableau)
-    (t (error "~S is not a valid tableau" tableau))))
+    (t (check-type tableau tableau))))
 
 (declaim (inline tableau-variable))
 (defun tableau-variable (var tableau)

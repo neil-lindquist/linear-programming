@@ -15,6 +15,22 @@
 (in-suite problem)
 
 (test make-linear-problem
+  (signals parsing-error
+           (make-linear-problem (avg (+ x (* 4 y) (* 8 z)))
+                                (<= (+ x y) 8)
+                                (<= (+ y z) 7)))
+
+  (signals parsing-error
+           (make-linear-problem (min (+ x (* 4 y) (* 8 z)))
+                                (& (+ x y) 8)
+                                (<= (+ y z) 7)))
+
+  (signals parsing-error
+           (make-linear-problem (min (+ x (* 4 y) (* 8 z)))
+                                (<= (+ x y) 8)
+                                (<= (+ y z) 7)
+                                (foobar x)))
+
   (let ((problem (make-linear-problem (max (+ x (* 4 y) (* 8 z)))
                                       (<= (+ x y) 8)
                                       (<= (+ y z) 7))))

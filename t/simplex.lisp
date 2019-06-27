@@ -4,6 +4,7 @@
         :iterate
         :fiveam
         :linear-programming-test/base
+        :linear-programming/conditions
         :linear-programming/problem
         :linear-programming/simplex)
   (:export #:simplex))
@@ -225,6 +226,20 @@
                                        main-tab)
                  (equalp (vars-to-cols #(x y z) main-tab) (tableau-basis-columns main-tab)))))
     (is (= 85/3 (tableau-objective-value main-tab)))))
+
+(test unsolvable-problems
+  (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
+                                       (<= (+ (* 2 x) y) 4)
+                                       (<= (+ y z) 2)
+                                       (>= (+ x z) 5)))
+         (tableau (build-tableau problem)))
+    (signals infeasible-problem-error (solve-tableau tableau)))
+
+  (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
+                                       (<= (+ (* 2 x) y) 4)
+                                       (<= (+ y (* -1 z)))))
+         (tableau (build-tableau problem)))
+    (signals unbounded-problem-error (solve-tableau tableau))))
 
 (in-suite simplex)
 

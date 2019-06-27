@@ -4,6 +4,7 @@
   (:use :cl
         :alexandria
         :iterate
+        :linear-programming/conditions
         :linear-programming/problem
         :linear-programming/simplex)
   (:export #:with-solved-problem

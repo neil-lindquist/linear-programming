@@ -4,6 +4,7 @@
         :fiveam
         :linear-programming-test/base
         :linear-programming-test/test-utils
+        :linear-programming/conditions
         :linear-programming/expressions)
   (:export #:expressions))
 
@@ -41,4 +42,4 @@
 (test parse-linear-expression
   (is (set-equal '((a . 1) (+constant+ . 5) (b . 8))
                  (parse-linear-expression '(+ a 5 (* 8 b)))))
-  (signals error (parse-linear-expression '(* x y))))
+  (signals parsing-error (parse-linear-expression '(* x y))))

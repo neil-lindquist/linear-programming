@@ -1,8 +1,9 @@
 
 (uiop:define-package :linear-programming/expressions
   (:use :cl
-         :alexandria
-         :iterate)
+        :alexandria
+        :iterate
+        :linear-programming/conditions)
   (:export #:scale-linear-expression
            #:sum-linear-expressions
            #:parse-linear-expression
@@ -41,14 +42,16 @@
 
     ; error case
     ((not (listp expr))
-     (error "~S is not a symbol, number, or an expression" expr))
+     (error 'parsing-error
+            :description (format nil "~S is not a symbol, number, or an expression" expr)))
 
     ; arithmetic
     ((eq (first expr) '+)
      (sum-linear-expressions (mapcar 'parse-linear-expression (rest expr))))
     ((eq (first expr) '*)
      (unless (= 3 (length expr))
-       (error "Multiplication in linear expressions only supports two products"))
+       (error 'parsing-error
+              :description (format nil "Multiplication in linear expressions only supports two products")))
      (let ((prod1 (second expr))
            (prod2 (third expr)))
        (cond
@@ -58,6 +61,7 @@
           (list (cons prod2 prod1)))
          ((and (symbolp prod1) (numberp prod2))
           (list (cons prod1 prod2)))
-         (t (error "Cannot multiple ~A and ~A in a linear expression" prod1 prod2)))))))
+         (t (error 'parsing-error
+                   :description (format nil "Cannot multiple ~A and ~A in a linear expression" prod1 prod2))))))))
     ;TODO implement subtraction
     ;TODO implememnt dividing coefficient

@@ -3,9 +3,12 @@
   (:use :cl
          :alexandria
          :iterate
+         :linear-programming/conditions
          :linear-programming/expressions)
   (:export #:make-linear-problem
            #:parse-linear-problem
+
+           #:parsing-error
 
            #:min
            #:max
@@ -54,6 +57,7 @@
                 :type list
                 :documentation "A list of simple inequality contraints")))
 
+
 (declaim (inline simple-eq))
 (defun simple-eq (op exp1 exp2)
   "Takes the rhs and lhs of an in/equality and moves any constant to the rhs
@@ -97,7 +101,7 @@
       ((signed)
        (unioning (rest expr)
                  into signed))
-      (t (error "~A is not a valid constraint" expr)))
+      (t (error 'parsing-error :description (format nil "~A is not a valid constraint" expr))))
     (finally
       (let ((simple-eqs
              (reduce 'append
@@ -125,7 +129,9 @@
       (setf objective (list (first objective) (third (second objective))))
       (setf objective-var-p t))
     (unless (member (first objective) '(min max) :test 'eq)
-      (error "~A is not min or max in objective function ~A" (first objective) objective))
+      (error 'parsing-error
+             :description (format nil "~A is neither min nor max in objective function ~A"
+                                      (first objective) objective)))
     (let* ((type (first objective))
            (objective-function (parse-linear-expression (second objective)))
            (parsed-constraints (parse-linear-constraints constraints))
