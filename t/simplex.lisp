@@ -243,15 +243,15 @@
     (is (= (tableau-var-count tableau1) (tableau-var-count tableau2)))
     (is (= (tableau-constraint-count tableau1) (tableau-constraint-count tableau2)))))
 
-(test get-tableau-variable
-  (declare (notinline get-tableau-variable))
+(test tableau-variable
+  (declare (notinline tableau-variable))
   (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
                                        (<= (+ (* 2 x) y) 8)
                                        (<= (+ y z) 7)))
          (tableau (n-solve-tableau (build-tableau problem))))
-    (is (= 1/2 (get-tableau-variable 'x tableau)))
-    (is (= 7 (get-tableau-variable 'y tableau)))
-    (is (= 0 (get-tableau-variable 'z tableau)))))
+    (is (= 1/2 (tableau-variable 'x tableau)))
+    (is (= 7 (tableau-variable 'y tableau)))
+    (is (= 0 (tableau-variable 'z tableau)))))
 
 (test with-tableau-variables
   (let* ((problem (make-linear-problem (= w (max (+ x (* 4 y) (* 3 z))))
@@ -270,11 +270,11 @@
              (is (= z 0))))))
 
 
-(test get-shadow-price
+(test tableau-shadow-price
   (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
                                        (<= (+ (* 2 x) y) 8)
                                        (<= (+ y z) 7)))
          (tableau (n-solve-tableau (build-tableau problem))))
-    (is (= 0 (get-shadow-price 'x tableau)))
-    (is (= 0 (get-shadow-price 'y tableau)))
-    (is (= 1/2 (get-shadow-price 'z tableau)))))
+    (is (= 0 (tableau-shadow-price 'x tableau)))
+    (is (= 0 (tableau-shadow-price 'y tableau)))
+    (is (= 1/2 (tableau-shadow-price 'z tableau)))))

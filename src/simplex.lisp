@@ -13,15 +13,15 @@
            #:tableau-var-count
            #:tableau-constraint-count
            #:tableau-objective-value
+           #:tableau-variable
+           #:tableau-shadow-price
 
            #:n-pivot-row
 
            #:build-tableau
            #:solve-tableau
            #:n-solve-tableau
-           #:get-tableau-variable
-           #:with-tableau-variables
-           #:get-shadow-price))
+           #:with-tableau-variables))
 
 (in-package :linear-programming/simplex)
 
@@ -225,8 +225,8 @@
      tableau)
     (t (error "~S is not a valid tableau" tableau))))
 
-(declaim (inline get-tableau-variable))
-(defun get-tableau-variable (var tableau)
+(declaim (inline tableau-variable))
+(defun tableau-variable (var tableau)
   "Gets the value of the given variable from the tableau"
   (let* ((problem (tableau-problem tableau))
          (objective-var (objective-variable problem)))
@@ -240,7 +240,8 @@
         0))))
 
 
-(defun get-shadow-price (var tableau)
+(declaim (inline tableau-shadow-price))
+(defun tableau-shadow-price (var tableau)
   "Gets the shadow price for the given variable from the tableau"
   (if-let (idx (position var (variables (tableau-problem tableau))))
     (aref (tableau-matrix tableau)
@@ -267,5 +268,5 @@
            (declare (ignorable ,(objective-variable problem) ,@(map 'list #'identity vars)))
            ,@body))
       `(let (,@(iter (for var in-sequence var-list)
-                 (collect `(,var (get-tableau-variable ',var ,tableau)))))
+                 (collect `(,var (tableau-variable ',var ,tableau)))))
          ,@body))))

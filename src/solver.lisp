@@ -44,8 +44,8 @@
                                                     :initial-element 0)))
     (iter (for var in-vector (variables problem))
           (for i from 0)
-      (setf (aref variables i) (get-tableau-variable var tableau))
-      (setf (aref shadow-prices i) (get-shadow-price var tableau)))
+      (setf (aref variables i) (tableau-variable var tableau))
+      (setf (aref shadow-prices i) (tableau-shadow-price var tableau)))
     (make-solution :problem problem
                    :objective-value (tableau-objective-value tableau)
                    :variables variables
