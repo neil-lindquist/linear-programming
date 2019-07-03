@@ -37,12 +37,13 @@ exec ros -Q -- $0 "$@"
   (doc-print stream 'variable name nil (documentation name 'variable)))
 
 (defmethod print-documentation ((_ (eql 'class)) name stream)
-  (doc-print stream (typecase (find-class name)
-                      (standard-class "CLASS")
-                      (structure-class "STRUCT")
-                      (condition "CONDITION")
-                      (t (error "Unknown class type ~A for ~A" (type-of (find-class name)) (find-class name))))
-                    name nil (documentation (find-class name) t)))
+  (let ((class (find-class name)))
+    (doc-print stream (cond
+                        ((subtypep class 'condition) "CONDITION")
+                        ((typep class 'standard-class) "CLASS")
+                        ((typep class 'structure-class) "STRUCT")
+                        (t (error "Unknown class type ~A for ~A" (type-of class) class)))
+                      name nil (documentation class t))))
 
 (defmethod print-documentation ((_ (eql 'package)) name stream)
   (format stream "### ")
