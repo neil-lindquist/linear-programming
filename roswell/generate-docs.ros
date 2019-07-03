@@ -9,13 +9,16 @@ exec ros -Q -- $0 "$@"
 (ql:quickload '(:cl-ppcre :copy-directory))
 (require 'sb-introspect)
 
-(defun sanitize-symbol (s)
+(defun sanitize-string (s)
   (cl-ppcre:regex-replace-all "\\*" (string s) "\\*"))
 
 (defun doc-print (stream type name args doc)
   (format stream "**~A** - ~A ~@[~A~]~
                   ~@[  ~%~A~]~%~%"
-          (sanitize-symbol type) (sanitize-symbol name) (mapcar #'sanitize-symbol args) doc))
+          (sanitize-string type)
+          (sanitize-string name)
+          (when args (sanitize-string (format nil "~A" args)))
+          doc))
 
 (defgeneric print-documentation (type name stream)
   (:documentation "Outputs the documentation for the named system"))
@@ -43,7 +46,7 @@ exec ros -Q -- $0 "$@"
                         ((typep class 'standard-class) "CLASS")
                         ((typep class 'structure-class) "STRUCT")
                         (t (error "Unknown class type ~A for ~A" (type-of class) class)))
-                      name nil (documentation class t))))
+           name nil (documentation class t))))
 
 (defmethod print-documentation ((_ (eql 'package)) name stream)
   (format stream "### ")
