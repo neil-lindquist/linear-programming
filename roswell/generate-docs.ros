@@ -40,7 +40,7 @@ exec ros -Q -- $0 "$@"
   (doc-print stream (typecase (find-class name)
                       (standard-class "CLASS")
                       (structure-class "STRUCT")
-                      (condition-class "CONDITION")
+                      (condition "CONDITION")
                       (t (error "Unknown class type ~A for ~A" (type-of (find-class name)) (find-class name))))
                     name nil (documentation (find-class name) t)))
 
@@ -100,7 +100,7 @@ exec ros -Q -- $0 "$@"
     (print-documentation 'package 'linear-programming stream)
 
     (print-package-documentation 'linear-programming/problem stream)
-    (print-package-documentation 'linear-programming/solver)
-    (print-package-documentation 'linear-programming/conditions)
+    (print-package-documentation 'linear-programming/solver stream)
+    (print-package-documentation 'linear-programming/conditions stream)
     (print-package-documentation 'linear-programming/simplex stream)
     (print-package-documentation 'linear-programming/expressions stream)))
