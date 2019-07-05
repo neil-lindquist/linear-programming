@@ -8,11 +8,11 @@ meta-description: The specification of the Linear Programming Problem DSL
 It takes an *optimization-problem* form, followed by the *constraint* forms, both of which are described by the following grammar.
 Additionally, `parse-linear-problem` uses the same grammar for its arguments.
 
-*optimization-problem* = (min\|max *linear-expression*) \| (= *objective-variable* (min\|max *linear-expression)) \| (min\|max (= *objective-variable* *linear-expression*))  
-*constraint* = *inequality-constraint* \| *integer-constraint*
-*inequality-constraint* = (<=\|<\|>=\|>\|= *linear-expression*\*)
-*integer-constraint* = (integer *var*\*)
-*linear-expression* = *var* \| *number* \| (\* *var* *number*) \| (\* *number* *var*) \| (\* *number* *number*) \| (+ *linear-expression*\*)
+*objective-function* = (min\|max *linear-expression*) \| (= *objective-variable* (min\|max *linear-expression*)) \| (min\|max (= *objective-variable* *linear-expression*))  
+*constraint* = *inequality-constraint* \| *integer-constraint*  
+*inequality-constraint* = (<=\|<\|>=\|>\|= *linear-expression*\*)  
+*integer-constraint* = (integer *var*\*)  
+*linear-expression* = *var* \| *number* \| (\* *var* *number*) \| (\* *number* *var*) \| (\* *number* *number*) \| (+ *linear-expression*\*)  
 
 ### simple constraints
 After a linear problem is parsed, the constraints are stored using a simplified version of the DSL.
