@@ -13,6 +13,7 @@
            #:min
            #:max
            #:signed
+           #:integer
            #:<=
            #:>=
            #:<
@@ -27,6 +28,7 @@
            #:objective-variable
            #:objective-function
            #:signed-vars
+           #:integer-vars
            #:constraints))
 
 (in-package :linear-programming/problem)
@@ -49,9 +51,13 @@
               :type list
               :documentation "A linear expression for the objective function")
    (signed-vars :reader signed-vars
-                 :initarg :signed
+                :initarg :signed
+                :type list
+                :documentation "A list of variables that are non negative")
+   (integer-vars :reader integer-vars
+                 :initarg :integer
                  :type list
-                 :documentation "A list of variables that are non negative")
+                 :documentation "A list of variables that are integer valued")
    (constraints :reader constraints
                 :initarg :constraints
                 :type list
@@ -86,7 +92,7 @@
 
 (defun parse-linear-constraints (exprs)
   "Parses the list of constraints and returns a list containing a list of simple
-   inequalities and a list of signed variables"
+   inequalities, a list of signed variables, and a list of integer variables"
   (iter (for expr in exprs)
     (case (first expr)
       ((<= <)
@@ -101,6 +107,9 @@
       ((signed)
        (unioning (rest expr)
                  into signed))
+      ((integer)
+       (unioning (rest expr)
+                 into integer))
       (t (error 'parsing-error :description (format nil "~A is not a valid constraint" expr))))
     (finally
       (let ((simple-eqs
@@ -111,7 +120,7 @@
                                  (collect (simple-eq (first constraint)
                                                      (nth (1- i) constraint)
                                                      (nth i constraint))))))))
-        (return (list simple-eqs signed))))))
+        (return (list simple-eqs signed integer))))))
 
 
 (defun parse-linear-problem (objective-exp constraints)
@@ -137,13 +146,16 @@
            (parsed-constraints (parse-linear-constraints constraints))
            (eq-constraints (first parsed-constraints))
            (signed-constraints (second parsed-constraints))
-           (var-list (union
-                       (union (mapcar #'car objective-function)
-                              signed-constraints)
-                       (reduce (lambda (l1 l2) (union l1 (mapcar #'car l2)))
-                               eq-constraints
-                               :key 'second
-                               :initial-value nil)))
+           (integer-constraints (third parsed-constraints))
+           ;collect all of the variables referenced
+           (var-list (remove-duplicates (mapcar #'car objective-function)))
+           (var-list (union var-list signed-constraints))
+           (var-list (union var-list integer-constraints))
+           (var-list (union var-list
+                            (reduce (lambda (l1 l2) (union l1 (mapcar #'car l2)))
+                                    eq-constraints
+                                    :key 'second
+                                    :initial-value nil)))
            (variables (make-array (length var-list)
                                   :initial-contents var-list
                                   :element-type 'symbol)))
@@ -153,6 +165,7 @@
                      :objective-variable objective-var
                      :objective objective-function
                      :signed signed-constraints
+                     :integer integer-constraints
                      :constraints eq-constraints))))
 
 

@@ -27,7 +27,22 @@
     (is (= 0 (solution-variable solution 'z)))
     (is (= 0 (solution-shadow-price solution 'x)))
     (is (= 0 (solution-shadow-price solution 'y)))
-    (is (= 1/2 (solution-shadow-price solution 'z)))))
+    (is (= 1/2 (solution-shadow-price solution 'z))))
+
+  ; Integer problem
+  ; Rock of Gibralter problem
+  (let* ((problem (make-linear-problem (max (+ (* 240 x) (* 120 y)))
+                                       (<= (+ x y) 5)
+                                       (<= (+ (* -1 x) y) 0)
+                                       (<= (+ (* 6 x) (* 2 y)) 21)
+                                       (integer x y)))
+         (solution (solve-problem problem)))
+    (is (eq problem (solution-problem solution)))
+    (is (= 840 (solution-objective-value solution)))
+    (is (= 3 (solution-variable solution 'x)))
+    (is (= 1 (solution-variable solution 'y)))
+    (is (= 0 (solution-shadow-price solution 'x)))
+    (is (= 0 (solution-shadow-price solution 'y)))))
 
 
 (test with-solved-problem

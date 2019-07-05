@@ -3,6 +3,7 @@
   (:export #:parsing-error
            #:solver-error
            #:infeasible-problem-error
+           #:infeasible-integer-constraints-error
            #:unbounded-problem-error))
 (in-package :linear-programming/conditions)
 
@@ -33,3 +34,9 @@
              (declare (ignore err))
              (format stream "Problem has no feasible region")))
   (:documentation "Indicates the there is no feasible region."))
+
+(define-condition infeasible-integer-constraints-error (infeasible-problem-error)
+  ()
+  (:report (lambda (err stream)
+             (declare (ignore err))
+             (format stream "Integer constrains could not be satisfied"))))
