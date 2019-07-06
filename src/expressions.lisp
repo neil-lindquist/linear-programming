@@ -11,6 +11,11 @@
 
 (in-package :linear-programming/expressions)
 
+(defun linear-constant-p (expr)
+  "A predicate for whether a linear expression is constant"
+  (and (= 1 (length expr))
+       (eq (car (first expr)) '+constant+)))
+
 (declaim (inline sum-linear-expressions))
 (defun sum-linear-expressions (&rest exprs)
   "Takes a list of linear expressions and reduces it into a single expression"
@@ -48,21 +53,25 @@
     ; arithmetic
     ((eq (first expr) '+)
      (apply #'sum-linear-expressions (mapcar 'parse-linear-expression (rest expr))))
+
     ((eq (first expr) '*)
-     (unless (= 3 (length expr))
-       (error 'parsing-error
-              :description (format nil "Multiplication in linear expressions only supports two products")))
-     (let ((prod1 (second expr))
-           (prod2 (third expr)))
-       (cond
-         ((and (numberp prod1) (numberp prod2))
-          (list (cons '+constant+ (* prod1 prod2))))
-         ((and (numberp prod1) (symbolp prod2))
-          (list (cons prod2 prod1)))
-         ((and (symbolp prod1) (numberp prod2))
-          (list (cons prod1 prod2)))
-         (t (error 'parsing-error
-                   :description (format nil "Cannot multiple ~A and ~A in a linear expression" prod1 prod2))))))
+     (let ((factors (mapcar #'parse-linear-expression (rest expr)))
+           (variable nil))
+       (iter (for fact in factors)
+         (cond
+           ((linear-constant-p fact)
+            (collect fact into constants))
+           (variable
+            (error 'parsing-error
+                   :description (format nil "~A is not linear expression" expr)))
+           (t
+            (setf variable fact)))
+         (finally
+           (let ((constant-product (reduce #'* constants :key #'cdar)))
+             (return (if variable
+                       (scale-linear-expression variable constant-product)
+                       `((+constant+ . ,constant-product)))))))))
+
     ((and (eq (first expr) '-) (= 2 (length expr)))
      (scale-linear-expression (parse-linear-expression (second expr)) -1))
     ((eq (first expr) '-)
@@ -70,6 +79,20 @@
                              (scale-linear-expression
                                (parse-linear-expression (list* '+ (nthcdr 2 expr)))
                                -1)))
-    ;TODO implememnt dividing coefficient
+
+    ((and (eq (first expr) '/) (= 2 (length expr)))
+     (let ((val (parse-linear-expression (second expr))))
+       (unless (linear-constant-p val)
+         (error 'parsing-error
+                :description (format nil "~A is not a linear expression" expr)))
+       `((+constant+ . (/ (cdar val))))))
+    ((eq (first expr) '/)
+     (let ((divisors (mapcar #'parse-linear-expression (nthcdr 2 expr)))
+           (dividend (parse-linear-expression (second expr))))
+       (unless (every #'linear-constant-p divisors)
+         (error 'parsing-error
+                :description (format nil "~A is not a linear expression" expr)))
+       (scale-linear-expression dividend (/ (reduce #'* divisors :key #'cdar)))))
+
     (t (error 'parsing-error
               :description (format nil "~A is not a linear expression" expr)))))

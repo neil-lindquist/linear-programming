@@ -46,6 +46,8 @@
                  (parse-linear-expression '(+ (* 2 3) (* x 2)))))
   (is (set-equal '((x . -1) (y . 1) (z . -3))
                  (parse-linear-expression '(+ (- x) (- y (* 3 z))))))
+  (is (set-equal '((+constant+ . 116) (x . 14))
+                 (parse-linear-expression '(+ (* 3 4 5) (* 1 (+ 3 4) 2 (+ x 4))))))
   (signals parsing-error (parse-linear-expression '(* x y)))
   (signals parsing-error (parse-linear-expression '"x + y"))
   (signals parsing-error (parse-linear-expression '(log 3))))

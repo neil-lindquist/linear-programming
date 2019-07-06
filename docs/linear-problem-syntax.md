@@ -11,7 +11,7 @@ A linear programming problem is described with an *optimization-function* form, 
 + *constraint* &#x2192; *inequality-constraint* \| *integer-constraint*  
 + *inequality-constraint* &#x2192; (<=\|<\|>=\|>\|= *linear-expression*\*)  
 + *integer-constraint* &#x2192; (integer *var*\*) \| (binary *var*\*)  
-+ *linear-expression* &#x2192; *var* \| *number* \| (\* *var* *number*) \| (\* *number* *var*) \| (\* *number* *number*) \| (\+\|\- *linear-expression*\*)  
++ *linear-expression* &#x2192; *var* \| *number* \| (\+\|\-\|\*\|/ *linear-expression*\*)
 
 
 ### Example
