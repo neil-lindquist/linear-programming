@@ -131,6 +131,28 @@
     (is (set-equal '((<= ((x . 1) (y . 1)) 8) (<= ((y . -1) (z . 1)) 7))
                    (constraints problem))))
 
+  ;binary variable
+  (let ((problem (make-linear-problem (max (= total (+ x (* -4 y) (* 8 z))))
+                                      (<= (+ x y) 8)
+                                      (<= (+ (* -1 y) z) 7)
+                                      (binary y))))
+    (is (typep problem 'linear-problem))
+    (is (eq 'max (lp-type problem)))
+    (is (typep (variables problem) 'vector))
+    (is (eq 'total (objective-variable problem)))
+    (is (set-equal '(x y z)
+                   (map 'list #'identity (variables problem))))
+    (is (set-equal '((x . 1) (y . -4) (z . 8))
+                   (objective-function problem)))
+    (is (set-equal '()
+                   (signed-vars problem)))
+    (is (set-equal '(y)
+                   (integer-vars problem)))
+    (is (set-equal '((<= ((x . 1) (y . 1)) 8)
+                     (<= ((y . -1) (z . 1)) 7)
+                     (<= ((y . 1)) 1))
+                   (constraints problem))))
+
   ; objective func name within the max
   (let ((problem (make-linear-problem (max (= total (+ x (* -4 y) (* 8 z))))
                                       (<= (+ x y) 8)

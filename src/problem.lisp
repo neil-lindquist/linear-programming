@@ -14,6 +14,7 @@
            #:max
            #:signed
            #:integer
+           #:binary
            #:<=
            #:>=
            #:<
@@ -110,6 +111,12 @@
       ((integer)
        (unioning (rest expr)
                  into integer))
+      ((binary)
+       (unioning (rest expr)
+                 into integer)
+       (appending (mapcar (lambda (var) `(<= ((,var . 1)) ((+constant+ . 1))))
+                          (rest expr))
+               into equalities))
       (t (error 'parsing-error :description (format nil "~A is not a valid constraint" expr))))
     (finally
       (let ((simple-eqs

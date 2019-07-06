@@ -11,7 +11,7 @@ Additionally, `parse-linear-problem` uses the same grammar for its arguments.
 *objective-function* = (min\|max *linear-expression*) \| (= *objective-variable* (min\|max *linear-expression*)) \| (min\|max (= *objective-variable* *linear-expression*))  
 *constraint* = *inequality-constraint* \| *integer-constraint*  
 *inequality-constraint* = (<=\|<\|>=\|>\|= *linear-expression*\*)  
-*integer-constraint* = (integer *var*\*)  
+*integer-constraint* = (integer *var*\*) \| (binary *var*\*)  
 *linear-expression* = *var* \| *number* \| (\* *var* *number*) \| (\* *number* *var*) \| (\* *number* *number*) \| (+ *linear-expression*\*)  
 
 ### simple constraints
