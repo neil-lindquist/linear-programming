@@ -4,7 +4,8 @@
            #:solver-error
            #:infeasible-problem-error
            #:infeasible-integer-constraints-error
-           #:unbounded-problem-error))
+           #:unbounded-problem-error
+           #:nonlinear-error))
 (in-package :linear-programming/conditions)
 
 
@@ -15,6 +16,14 @@
   (:documentation "Indicates an error occured while parsing a linear problem.
                    Includes a textual description of the issue."))
 
+(define-condition nonlinear-error (parsing-error)
+  ((expression :reader nonlinear-expression
+               :initarg :expression
+               :documentation "Contains the problematic expression"))
+  (:report (lambda (err stream) (format stream "~S is not a linear expression" (nonlinear-expression err))))
+  (:documentation "Indicates a form was not a linear expression.  This includes
+                   the use of nonlinear functions and taking the product of
+                   multiple variables"))
 
 (define-condition solver-error (error)
   ()

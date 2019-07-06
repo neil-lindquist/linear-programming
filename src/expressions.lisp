@@ -62,8 +62,7 @@
            ((linear-constant-p fact)
             (collect fact into constants))
            (variable
-            (error 'parsing-error
-                   :description (format nil "~A is not linear expression" expr)))
+            (error 'nonlinear-error :expression expr))
            (t
             (setf variable fact)))
          (finally
@@ -83,16 +82,13 @@
     ((and (eq (first expr) '/) (= 2 (length expr)))
      (let ((val (parse-linear-expression (second expr))))
        (unless (linear-constant-p val)
-         (error 'parsing-error
-                :description (format nil "~A is not a linear expression" expr)))
+         (error 'nonlinear-error :expression expr))
        `((+constant+ . (/ (cdar val))))))
     ((eq (first expr) '/)
      (let ((divisors (mapcar #'parse-linear-expression (nthcdr 2 expr)))
            (dividend (parse-linear-expression (second expr))))
        (unless (every #'linear-constant-p divisors)
-         (error 'parsing-error
-                :description (format nil "~A is not a linear expression" expr)))
+         (error 'nonlinear-error :expression expr))
        (scale-linear-expression dividend (/ (reduce #'* divisors :key #'cdar)))))
 
-    (t (error 'parsing-error
-              :description (format nil "~A is not a linear expression" expr)))))
+    (t (error 'nonlinear-error :expression expr))))
