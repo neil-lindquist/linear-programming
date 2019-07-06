@@ -1,2 +1,5 @@
 # generated documentation
 docs-bin
+
+# SLIMA's temp file
+repl.lisp-repl

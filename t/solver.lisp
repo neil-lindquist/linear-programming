@@ -16,6 +16,8 @@
 
 
 (test solve-problem
+  (declare (notinline solution-variable))
+
   (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
                                        (<= (+ (* 2 x) y) 8)
                                        (<= (+ y z) 7)))

@@ -117,6 +117,33 @@
     (is (equalp #(3 4 6) (tableau-basis-columns main-tableau)))
     (is (= 0 (tableau-objective-value main-tableau)))))
 
+(test pivot-row
+  (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
+                                       (<= (+ (* 2 x) y) 8)
+                                       (<= (+ y z) 7)))
+         (tableau (build-tableau problem))
+         (tableau2 (pivot-row tableau (position 'x (variables problem)) 0)))
+    (is (not (eq tableau tableau2)))
+    (is (= 0 (tableau-objective-value tableau))) ;ensure original not mutated
+    (is (eq tableau (n-pivot-row tableau (position 'x (variables problem)) 0)))
+
+    (is-true (tableau-p tableau2))
+    (is (eq problem (tableau-problem tableau2)))
+    (is (equalp (tableau-matrix tableau) (tableau-matrix tableau2)))
+    (is (equalp (tableau-basis-columns tableau) (tableau-basis-columns tableau2)))
+    (is (= 5 (tableau-var-count tableau2)))
+    (is (= 2 (tableau-constraint-count tableau2)))
+
+    (is (eq problem (tableau-problem tableau)))
+    (is (equal 5 (tableau-var-count tableau)))
+    (is (equal 2 (tableau-constraint-count tableau)))
+    (is (tableau-matrix-equal #2A((1 0 0) (1/2 1 -7/2) (0 1 -3) (1/2 0 1/2) (0 1 0) (4 7 4))
+                              #(x y z)
+                              tableau))
+    (is (equalp (vars-to-cols #(x 4) tableau) (tableau-basis-columns tableau)))
+    (is (= 4 (tableau-objective-value tableau)))))
+
+
 (def-suite solve-tableau
   :in simplex
   :description "The suite to test solve-tableau and n-solve-tableau")
@@ -260,10 +287,11 @@
 
 (test tableau-variable
   (declare (notinline tableau-variable))
-  (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
+  (let* ((problem (make-linear-problem (max (= w (+ x (* 4 y) (* 3 z))))
                                        (<= (+ (* 2 x) y) 8)
                                        (<= (+ y z) 7)))
          (tableau (n-solve-tableau (build-tableau problem))))
+    (is (= 57/2 (tableau-variable 'w tableau)))
     (is (= 1/2 (tableau-variable 'x tableau)))
     (is (= 7 (tableau-variable 'y tableau)))
     (is (= 0 (tableau-variable 'z tableau)))))
@@ -286,6 +314,7 @@
 
 
 (test tableau-shadow-price
+  (declare (notinline tableau-shadow-price))
   (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
                                        (<= (+ (* 2 x) y) 8)
                                        (<= (+ y z) 7)))

@@ -42,4 +42,7 @@
 (test parse-linear-expression
   (is (set-equal '((a . 1) (+constant+ . 5) (b . 8))
                  (parse-linear-expression '(+ a 5 (* 8 b)))))
-  (signals parsing-error (parse-linear-expression '(* x y))))
+  (is (set-equal '((+constant+ . 6) (x . 2))
+                 (parse-linear-expression '(+ (* 2 3) (* x 2)))))
+  (signals parsing-error (parse-linear-expression '(* x y)))
+  (signals parsing-error (parse-linear-expression '(* "x" 1))))

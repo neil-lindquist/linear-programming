@@ -17,6 +17,7 @@
            #:tableau-variable
            #:tableau-shadow-price
 
+           #:pivot-row
            #:n-pivot-row
 
            #:build-tableau
