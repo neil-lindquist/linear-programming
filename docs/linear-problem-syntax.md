@@ -12,7 +12,7 @@ Additionally, `parse-linear-problem` uses the same grammar for its arguments.
 *constraint* = *inequality-constraint* \| *integer-constraint*  
 *inequality-constraint* = (<=\|<\|>=\|>\|= *linear-expression*\*)  
 *integer-constraint* = (integer *var*\*) \| (binary *var*\*)  
-*linear-expression* = *var* \| *number* \| (\* *var* *number*) \| (\* *number* *var*) \| (\* *number* *number*) \| (+ *linear-expression*\*)  
+*linear-expression* = *var* \| *number* \| (\* *var* *number*) \| (\* *number* *var*) \| (\* *number* *number*) \| (+\|- *linear-expression*\*)  
 
 ### simple constraints
 After a linear problem is parsed, the constraints are stored using a simplified version of the DSL.

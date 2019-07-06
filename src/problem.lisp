@@ -70,7 +70,7 @@
   "Takes the rhs and lhs of an in/equality and moves any constant to the rhs
    as a number and any non-constant values to the lhs as a linear expression."
   (let* ((lin-exp (sum-linear-expressions
-                      (list exp1 (scale-linear-expression exp2 -1))))
+                      exp1 (scale-linear-expression exp2 -1)))
          (const (cdr (assoc '+constant+ lin-exp :test 'eq)))
          (sum (delete '+constant+ lin-exp :test 'eq :key 'car)))
     (ecase op
