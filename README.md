@@ -23,20 +23,19 @@ First, the problem needs to be specified.
 (use-package :linear-programming)
 
 (defvar problem (make-linear-problem (max (= w (+ x (* 4 y) (* 3 z))))
-                                          (<= (+ (* 2 x) y) 8)
-                                          (<= (+ y z) 7)))
+                                     (<= (+ (* 2 x) y) 8)
+                                     (<= (+ y z) 7)))
 ```
-Then, once the problem is created, a simplex tableau can be build and solved.
+Once the problem is created, it can be solved with the simplex method.
 ```common-lisp
-(defvar tableau (solve-tableau (build-tableau problem)))
+(defvar solution (solve-problem problem))
 ```
 Finally, the optimal tableau can be inspected to get the resulting objective function, decision variables, and shadow prices.
 ```common-lisp
-(with-tableau-variables (w x y z) tableau
-  (format t "Objective value solution: ~A~%" w)
-  (format t "x = ~A (shadow price: ~A)~%" x (get-shadow-prices 'x tableau))
-  (format t "y = ~A (shadow price: ~A)~%" y (get-shadow-prices 'y tableau))
-  (format t "z = ~A (shadow price: ~A)~%" z (get-shadow-prices 'z tableau))))
+(format t "Objective value solution: ~A~%" (solution-variable solution 'w))
+(format t "x = ~A (shadow price: ~A)~%" (solution-variable solution 'x) (solution-shadow-price solution 'x))
+(format t "y = ~A (shadow price: ~A)~%" (solution-variable solution 'y) (solution-shadow-price solution 'y))
+(format t "z = ~A (shadow price: ~A)~%" (solution-variable solution 'z) (solution-shadow-price solution 'z))
 
 ;; ==>
 ;; Objective value solution: 57/2
@@ -44,4 +43,20 @@ Finally, the optimal tableau can be inspected to get the resulting objective fun
 ;; y = 7 (shadow price: 0)
 ;; z = 0 (shadow price: 1/2)
 ```
-In addition to the `with-tableau-variables` macro, variable values can be obtained using the `get-tableau-variable` function.
+Alternatively, the `with-solved-problem` macro combines these steps and binds the solution variables.
+
+```common-lisp
+(with-solved-problem ((max (= w (+ x (* 4 y) (* 3 z))))
+                      (<= (+ (* 2 x) y) 8)
+                      (<= (+ y z) 7))
+  (format t "Objective value solution: ~A~%" w)
+  (format t "x = ~A (shadow price: ~A)~%" x (shadow-price solution 'x))
+  (format t "y = ~A (shadow price: ~A)~%" y (shadow-price solution 'y))
+  (format t "z = ~A (shadow price: ~A)~%" z (shadow-price solution 'z)))
+
+;; ==>
+;; Objective value solution: 57/2
+;; x = 1/2 (shadow price: 0)
+;; y = 7 (shadow price: 0)
+;; z = 0 (shadow price: 1/2)
+```
