@@ -294,7 +294,8 @@
     (is (= 57/2 (tableau-variable 'w tableau)))
     (is (= 1/2 (tableau-variable 'x tableau)))
     (is (= 7 (tableau-variable 'y tableau)))
-    (is (= 0 (tableau-variable 'z tableau)))))
+    (is (= 0 (tableau-variable 'z tableau)))
+    (signals error (tableau-variable 'foo tableau))))
 
 (test with-tableau-variables
   (let* ((problem (make-linear-problem (= w (max (+ x (* 4 y) (* 3 z))))
@@ -321,4 +322,5 @@
          (tableau (n-solve-tableau (build-tableau problem))))
     (is (= 0 (tableau-shadow-price 'x tableau)))
     (is (= 0 (tableau-shadow-price 'y tableau)))
-    (is (= 1/2 (tableau-shadow-price 'z tableau)))))
+    (is (= 1/2 (tableau-shadow-price 'z tableau)))
+    (signals error (tableau-shadow-price 'foo tableau))))

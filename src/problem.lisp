@@ -70,26 +70,15 @@
   "Takes the rhs and lhs of an in/equality and moves any constant to the rhs
    as a number and any non-constant values to the lhs as a linear expression."
   (let* ((lin-exp (sum-linear-expressions
-                      (list exp1
-                            (scale-linear-expression exp2 -1))))
-         (const (cdr (assoc '+constant+
-                            lin-exp
-                            :test 'eq)))
-         (sum (delete '+constant+
-                      lin-exp
-                      :test 'eq
-                      :key 'car)))
-    (case op
+                      (list exp1 (scale-linear-expression exp2 -1))))
+         (const (cdr (assoc '+constant+ lin-exp :test 'eq)))
+         (sum (delete '+constant+ lin-exp :test 'eq :key 'car)))
+    (ecase op
       (<= (cond
-            ((null const)
-             (list '<= sum 0))
-            ((> const 0)
-             (list '>= (scale-linear-expression sum -1) const))
-            (t
-             (list '<= sum (- const)))))
-      (= (if (null const)
-           (list '= sum 0)
-           (list '= sum (- const)))))))
+            ((null const) (list '<= sum 0))
+            ((> const 0) (list '>= (scale-linear-expression sum -1) const))
+            (t (list '<= sum (- const)))))
+      (= (list '= sum (if const (- const) 0))))))
 
 (defun parse-linear-constraints (exprs)
   "Parses the list of constraints and returns a list containing a list of simple

@@ -233,16 +233,17 @@
 (declaim (inline tableau-variable))
 (defun tableau-variable (var tableau)
   "Gets the value of the given variable from the tableau"
-  (let* ((problem (tableau-problem tableau))
-         (objective-var (objective-variable problem)))
-    (if (eq var objective-var)
+  (let ((problem (tableau-problem tableau)))
+    (if (eq var (objective-variable problem))
       (tableau-objective-value tableau)
-      (if-let (idx (position (position var (variables problem))
-                             (tableau-basis-columns tableau)))
-        (aref (tableau-matrix tableau)
-              (tableau-var-count tableau)
-              idx)
-        0))))
+      (let* ((var-id (position var (variables problem)))
+             (idx (position var-id (tableau-basis-columns tableau))))
+        (cond
+          ((null var-id) (error "~S is not a variable in the tableau" var))
+          (idx (aref (tableau-matrix tableau)
+                     (tableau-var-count tableau)
+                     idx))
+          (t 0))))))
 
 
 (declaim (inline tableau-shadow-price))

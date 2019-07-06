@@ -45,4 +45,4 @@
   (is (set-equal '((+constant+ . 6) (x . 2))
                  (parse-linear-expression '(+ (* 2 3) (* x 2)))))
   (signals parsing-error (parse-linear-expression '(* x y)))
-  (signals parsing-error (parse-linear-expression '(* "x" 1))))
+  (signals parsing-error (parse-linear-expression '"x + y")))
