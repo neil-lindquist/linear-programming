@@ -1,6 +1,5 @@
 
 (uiop:define-package :linear-programming/solver
-  (:documentation "High level linear programming problem solving functions")
   (:use :cl
         :alexandria
         :iterate
@@ -14,14 +13,25 @@
            #:solution-problem
            #:solution-objective-value
            #:solution-variable
-           #:solution-shadow-price))
+           #:solution-shadow-price)
+  (:documentation "The high level linear programming solver interface.  This
+                   package abstracts away some of the complexities of the
+                   simplex method, including integer constraints.  See
+                   [LINEAR-PROGRAMMING/SIMPLEX](#package-linear-programming/simplex)
+                   for lower level control of the solver."))
+
 (in-package :linear-programming/solver)
 
 (defstruct solution
+  "Represents a solution to a linear programming problem."
   (problem nil :read-only t :type linear-problem)
   (objective-value 0 :read-only t :type real)
   (variables #() :read-only t :type (simple-array real (*)))
   (shadow-prices #() :read-only t :type (simple-array real (*))))
+
+(setf (documentation 'solution-problem 'function) "The problem that resulted in this solution."
+      (documentation 'solution-objective-value 'function) "The value of the objective function.")
+
 
 (declaim (inline solution-variable))
 (defun solution-variable (solution var)

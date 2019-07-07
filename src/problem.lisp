@@ -30,7 +30,8 @@
            #:objective-function
            #:signed-vars
            #:integer-vars
-           #:constraints))
+           #:constraints)
+  (:documentation "Handles the representation of linear programming problems."))
 
 (in-package :linear-programming/problem)
 
@@ -62,8 +63,16 @@
    (constraints :reader constraints
                 :initarg :constraints
                 :type list
-                :documentation "A list of simple inequality contraints")))
+                :documentation "A list of simple inequality contraints"))
+  (:documentation "The representation of a linear programming problem."))
 
+(setf (documentation 'lp-type 'function) "Whether the problem is a `min` or `max` problem."
+      (documentation 'variables 'function) "An array of the variables specified in the problem."
+      (documentation 'objective-variable 'function) "The name of the objective function."
+      (documentation 'objective-function 'function) "The objective function as a linear expression alist."
+      (documentation 'signed-vars 'function) "A list of variables without positivity constraints."
+      (documentation 'integer-vars 'function) "A list of variables with integer constraints."
+      (documentation 'constraints 'function) "A list of (in)equality constraints.")
 
 (declaim (inline simple-eq))
 (defun simple-eq (op exp1 exp2)

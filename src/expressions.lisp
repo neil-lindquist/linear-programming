@@ -7,7 +7,8 @@
   (:export #:scale-linear-expression
            #:sum-linear-expressions
            #:parse-linear-expression
-           #:+constant+))
+           #:+constant+)
+  (:documentation "Contains functions for processing linear expressions."))
 
 (in-package :linear-programming/expressions)
 
@@ -37,7 +38,7 @@
 
 (defun parse-linear-expression (expr)
   "Parses the expression into a alist mapping variables to coefficients.
-   Any constant values are mapped to +constant+"
+   Any constant values are mapped to `+constant+`"
   (cond
     ; atoms
     ((symbolp expr)

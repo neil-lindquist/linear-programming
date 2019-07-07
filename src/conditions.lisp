@@ -5,7 +5,8 @@
            #:infeasible-problem-error
            #:infeasible-integer-constraints-error
            #:unbounded-problem-error
-           #:nonlinear-error))
+           #:nonlinear-error)
+  (:documentation "Contains the various conditions used by this library."))
 (in-package :linear-programming/conditions)
 
 
@@ -48,4 +49,6 @@
   ()
   (:report (lambda (err stream)
              (declare (ignore err))
-             (format stream "Integer constrains could not be satisfied"))))
+             (format stream "Integer constrains could not be satisfied")))
+  (:documentation "Indicates that there is no feasible region due to the integer
+                   constraints."))

@@ -6,18 +6,24 @@ exec ros -Q -- $0 "$@"
 
 #-sbcl (error "Documentation is designed to be build on SBCL")
 
-(ql:quickload '(:cl-ppcre :copy-directory))
+(ql:quickload '(:cl-ppcre :copy-directory :do-urlencode))
 (require 'sb-introspect)
 
 (defun sanitize-string (s)
   (cl-ppcre:regex-replace-all "\\*" (string s) "\\*"))
 
 (defun doc-print (stream type name args doc)
-  (format stream "**~A** - ~A ~@[~A~]~
+  (format stream "<a name=\"~A-~@[~A:~]~A\"></a>**~A** - ~A ~@[~A~]~
                   ~@[  ~%~A~]~%~%"
+          (string-downcase (sanitize-string type))
+          (when (symbolp name)
+            (string-downcase (sanitize-string (package-name (symbol-package name)))))
+          (string-downcase (sanitize-string name))
+
           (sanitize-string type)
           (sanitize-string name)
           (when args (sanitize-string (format nil "~A" args)))
+
           doc))
 
 (defgeneric print-documentation (type name stream)
@@ -49,8 +55,8 @@ exec ros -Q -- $0 "$@"
            name nil (documentation class t))))
 
 (defmethod print-documentation ((_ (eql 'package)) name stream)
-  (format stream "### ")
-  (doc-print stream 'package name nil (documentation (find-package name) t)))
+  (format stream "<br>~%### ")
+  (doc-print stream 'package (string name) nil (documentation (find-package name) t)))
 
 (defmethod symbol-bound-p ((_ (eql 'function)) symbol)
   (fboundp symbol))
@@ -62,14 +68,15 @@ exec ros -Q -- $0 "$@"
   (boundp symbol))
 
 
-(defun print-package-documentation (package stream)
+(defun print-package-documentation (package-name stream)
   "Prints the documentation for the package"
-  (print-documentation 'package package stream)
-  (do-external-symbols (symbol package)
-    (dolist (type '(function macro class variable))
-      (when (and (not (eq (symbol-package symbol) #.(find-package 'cl)))
-                 (symbol-bound-p type symbol))
-        (print-documentation type symbol stream)))))
+  (let ((package (find-package package-name)))
+    (print-documentation 'package (package-name package) stream)
+    (do-external-symbols (symbol package)
+      (dolist (type '(function macro class variable))
+        (when (and (eq (symbol-package symbol) package) ;don't document reexported symbols
+                   (symbol-bound-p type symbol))
+          (print-documentation type symbol stream))))))
 
 
 (defun main (&rest argv)
@@ -96,11 +103,6 @@ exec ros -Q -- $0 "$@"
                     ---~%~%~%")
 
 
-    (unless (documentation (find-package 'linear-programming) t)
-      (setf (documentation (find-package 'linear-programming) t)
-            "The overall package.  Reexports symbols from
-             LINEAR-PROGRAMMING/PROBLEM, LINEAR-PROGRAMMING/SOLVER and
-             LINEAR-PROGRAMMING/CONDITIONS."))
     (print-documentation 'package 'linear-programming stream)
 
     (print-package-documentation 'linear-programming/problem stream)

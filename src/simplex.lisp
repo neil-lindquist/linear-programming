@@ -23,11 +23,13 @@
            #:build-tableau
            #:solve-tableau
            #:n-solve-tableau
-           #:with-tableau-variables))
+           #:with-tableau-variables)
+  (:documentation "The actual simplex solver implementation."))
 
 (in-package :linear-programming/simplex)
 
 (defstruct (tableau (:copier #:shallow-tableau-copy))
+  "Contains the necessary information for a simplex tableau."
   (problem nil :read-only t :type (or linear-problem artificial-linear-problem))
   (matrix #2A() :read-only t :type (simple-array real 2))
   (basis-columns #() :read-only t :type (simple-array * (*)))
@@ -208,7 +210,8 @@
     (n-solve-tableau (copy-tableau tableau))))
 
 (defun n-solve-tableau (tableau)
-  "A non-consing version of `solve-tableau`."
+  "A non-consing version of
+   [`solve-tableau`](#function-linear-programming/simplex:solve-tableau)."
   (cond
     ((listp tableau)
      (let ((solved-art-tab (n-solve-tableau (first tableau)))
