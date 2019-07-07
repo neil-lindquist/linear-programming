@@ -83,7 +83,7 @@
      (let ((val (parse-linear-expression (second expr))))
        (unless (linear-constant-p val)
          (error 'nonlinear-error :expression expr))
-       `((+constant+ . (/ (cdar val))))))
+       `((+constant+ . ,(/ (cdar val))))))
     ((eq (first expr) '/)
      (let ((divisors (mapcar #'parse-linear-expression (nthcdr 2 expr)))
            (dividend (parse-linear-expression (second expr))))
