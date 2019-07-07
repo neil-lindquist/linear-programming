@@ -7,7 +7,8 @@ exec ros -Q -- $0 "$@"
 ; Some code is derived from Eitaro Fukamachi's run-prove, under the MIT license
 ; https://github.com/fukamachi/prove/blob/master/roswell/run-prove.ros
 
-(ql:quickload '(:fiveam :iterate) :silent t)
+;cmucl crashes without verbose on
+(ql:quickload '(:fiveam :iterate) :verbose (member :cmu *features*))
 
 (defpackage :ros.script.run-fiveam
   (:use :cl

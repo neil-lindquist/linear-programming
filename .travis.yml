@@ -18,8 +18,8 @@ env:
     - LISP=abcl
     - LISP=ecl
     - LISP=alisp
-#    - LISP=ccl-bin #package inferred system causing a crash
-#    - LISP=cmucl #crashes in a quicklisp load
+    - LISP=ccl-bin
+    - LISP=cmucl
 #    - LISP=clisp #fails to download
 
 matrix:
@@ -32,6 +32,9 @@ cache:
 
 install:
   - curl -L https://raw.githubusercontent.com/roswell/roswell/release/scripts/install-for-ci.sh | sh
+  # CCL's default asdf is slightly too old, so need to use a newer version
+  - mkdir -p ~/common-lisp
+  - if [ "$LISP" == "ccl-bin" ]; then git clone https://gitlab.common-lisp.net/asdf/asdf.git ~/common-lisp; fi
 
 script:
   - roswell/run-fiveam.ros -e t linear-programming-test:linear-programming
