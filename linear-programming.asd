@@ -6,5 +6,6 @@
   :licence "MIT"
   :class :package-inferred-system
   :pathname "src"
-  :depends-on ("linear-programming/all")
+  :depends-on ((:version "asdf" "3.1.6")
+               "linear-programming/all")
   :in-order-to ((test-op (test-op "linear-programming-test"))))

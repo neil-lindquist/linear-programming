@@ -5,5 +5,6 @@
   :licence "MIT"
   :class :package-inferred-system
   :pathname "t"
-  :depends-on ("linear-programming-test/all")
+  :depends-on ((:version "asdf" "3.1.6")
+               "linear-programming-test/all")
   :perform (test-op (o c) (symbol-call '#:fiveam '#:run! (intern "LINEAR-PROGRAMMING" '#:linear-programming-test))))
