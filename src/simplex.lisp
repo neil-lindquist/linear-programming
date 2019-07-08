@@ -234,7 +234,7 @@
     (t (check-type tableau tableau))))
 
 (declaim (inline tableau-variable))
-(defun tableau-variable (var tableau)
+(defun tableau-variable (tableau var)
   "Gets the value of the given variable from the tableau"
   (let ((problem (tableau-problem tableau)))
     (if (eq var (objective-variable problem))
@@ -250,7 +250,7 @@
 
 
 (declaim (inline tableau-shadow-price))
-(defun tableau-shadow-price (var tableau)
+(defun tableau-shadow-price (tableau var)
   "Gets the shadow price for the given variable from the tableau"
   (if-let (idx (position var (variables (tableau-problem tableau))))
     (aref (tableau-matrix tableau)
@@ -277,5 +277,5 @@
            (declare (ignorable ,(objective-variable problem) ,@(map 'list #'identity vars)))
            ,@body))
       `(let (,@(iter (for var in-sequence var-list)
-                 (collect `(,var (tableau-variable ',var ,tableau)))))
+                 (collect `(,var (tableau-variable ,tableau ',var)))))
          ,@body))))

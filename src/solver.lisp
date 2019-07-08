@@ -49,7 +49,7 @@
   "Solves the given linear problem"
   (let ((tableau (solve-tableau (build-tableau problem))))
     (if (every (lambda (var)
-                    (integerp (tableau-variable var tableau)))
+                    (integerp (tableau-variable tableau var)))
                (integer-vars problem))
       (form-solution problem tableau)
       (branch-and-bound problem tableau))))
@@ -60,7 +60,7 @@
 (defun gen-entries (tableau entry)
   "Generates new entries to correct one of the integer constraints"
   (let* ((split-var (violated-integer-constraint tableau))
-         (split-var-val (tableau-variable split-var tableau)))
+         (split-var-val (tableau-variable tableau split-var)))
     (list (list* `(<= ((,split-var . 1)) ,(floor split-var-val))
                  entry)
           (list* `(>= ((,split-var . 1)) ,(ceiling split-var-val))
@@ -90,7 +90,7 @@
 (defun violated-integer-constraint (tableau)
   "Gets a variable that is required to be an integer but is not"
   (iter (for var in (integer-vars (tableau-problem tableau)))
-    (unless (integerp (tableau-variable var tableau))
+    (unless (integerp (tableau-variable tableau var))
       (return var))))
 
 (defun build-and-solve (problem extra-constraints)
@@ -121,8 +121,8 @@
                                                     :initial-element 0)))
     (iter (for var in-vector (variables problem))
           (for i from 0)
-      (setf (aref variables i) (tableau-variable var tableau))
-      (setf (aref shadow-prices i) (tableau-shadow-price var tableau)))
+      (setf (aref variables i) (tableau-variable tableau var))
+      (setf (aref shadow-prices i) (tableau-shadow-price tableau var)))
     (make-solution :problem problem
                    :objective-value (tableau-objective-value tableau)
                    :variables variables
