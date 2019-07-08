@@ -38,7 +38,7 @@
 (defclass linear-problem ()
   ((type :reader lp-type
          :initarg :type
-         :type (member (max min)))
+         :type (member max min))
    (variables :reader variables
               :initarg :variables
               :type (vector symbol)
