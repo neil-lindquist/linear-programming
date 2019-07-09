@@ -6,6 +6,7 @@ exec ros -Q -- $0 "$@"
 
 ; Some code is derived from Eitaro Fukamachi's run-prove, under the MIT license
 ; https://github.com/fukamachi/prove/blob/master/roswell/run-prove.ros
+; See NOTICES.md for a copy of the license
 
 ;cmucl crashes without verbose on
 (ql:quickload '(:fiveam :iterate) :verbose (member :cmu *features*))
@@ -30,6 +31,7 @@ exec ros -Q -- $0 "$@"
       ; This loop is a derived from code in Eitaro Fukamachi's cl-coveralls
       ; Used under the BSD 2-Clause License
       ; https://github.com/fukamachi/cl-coveralls/blob/master/src/cl-coveralls.lisp
+      ; See NOTICES.md for a copy of the license
       (loop for file in (uiop:directory-files
                           (uiop:ensure-directory-pathname
                             (uiop:getenv "TRAVIS_BUILD_DIR")))
