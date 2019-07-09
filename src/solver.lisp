@@ -27,7 +27,7 @@
 
 (defstruct solution
   "Represents a solution to a linear programming problem."
-  (problem nil :read-only t :type linear-problem)
+  (problem nil :read-only t :type problem)
   (objective-value 0 :read-only t :type real)
   (variables #() :read-only t :type (simple-array real (*)))
   (shadow-prices #() :read-only t :type (simple-array real (*))))
@@ -40,23 +40,23 @@
 (defun solution-variable (solution var)
   "Gets the value of the given variable in the solution"
   (let ((problem (solution-problem solution)))
-    (if (eq var (objective-variable problem))
+    (if (eq var (problem-objective-var problem))
       (solution-objective-value solution)
       (aref (solution-variables solution)
-            (position var (variables (solution-problem solution)))))))
+            (position var (problem-vars (solution-problem solution)))))))
 
 (declaim (inline solution-shadow-price))
 (defun solution-shadow-price (solution var)
   "Gets the shadow price of the given variable in the solution"
   (aref (solution-shadow-prices solution)
-        (position var (variables (solution-problem solution)))))
+        (position var (problem-vars (solution-problem solution)))))
 
 (defun solve-problem (problem)
   "Solves the given linear problem"
   (let ((tableau (solve-tableau (build-tableau problem))))
     (if (every (lambda (var)
                     (integerp (tableau-variable tableau var)))
-               (integer-vars problem))
+               (problem-integer-vars problem))
       (form-solution problem tableau)
       (branch-and-bound problem tableau))))
 
@@ -78,7 +78,7 @@
   (let ((current-best nil)
         (current-solution nil)
         (stack (gen-entries first-tableau '()))
-        (comparator (if (eq (lp-type problem) 'max) '< '>)))
+        (comparator (if (eq (problem-type problem) 'max) '< '>)))
     (iter (while stack)
       (let* ((entry (pop stack))
              (tab (build-and-solve problem entry)))
@@ -95,7 +95,7 @@
 
 (defun violated-integer-constraint (tableau)
   "Gets a variable that is required to be an integer but is not"
-  (iter (for var in (integer-vars (tableau-problem tableau)))
+  (iter (for var in (problem-integer-vars (tableau-problem tableau)))
     (unless (integerp (tableau-variable tableau var))
       (return var))))
 
@@ -105,27 +105,26 @@
   (handler-case
     (solve-tableau
       (build-tableau
-        (make-instance 'linear-problem
-                       :type (lp-type problem)
-                       :variables (variables problem)
-                       :objective-variable (objective-variable problem)
-                       :objective (objective-function problem)
-                       :signed (signed-vars problem)
-                       :integer (integer-vars problem)
-                       :constraints (append extra-constraints
-                                            (constraints problem)))))
+        (make-problem :type (problem-type problem)
+                      :vars (problem-vars problem)
+                      :objective-var (problem-objective-var problem)
+                      :objective-func (problem-objective-func problem)
+                      :signed-vars (problem-signed-vars problem)
+                      :integer-vars (problem-integer-vars problem)
+                      :constraints (append extra-constraints
+                                           (problem-constraints problem)))))
     (infeasible-problem-error () :infeasible)))
 
 ;;;;;;;;;; End Branch and Bound ;;;;;;;;;;
 
 (defun form-solution (problem tableau)
   "Creates the solution object from a problem and a solved tableau"
-  (let* ((num-vars (length (variables problem)))
+  (let* ((num-vars (length (problem-vars problem)))
          (variables (make-array (list num-vars) :element-type 'real
                                                 :initial-element 0))
          (shadow-prices (make-array (list num-vars) :element-type 'real
                                                     :initial-element 0)))
-    (iter (for var in-vector (variables problem))
+    (iter (for var in-vector (problem-vars problem))
           (for i from 0)
       (setf (aref variables i) (tableau-variable tableau var))
       (setf (aref shadow-prices i) (tableau-shadow-price tableau var)))
@@ -153,15 +152,14 @@
     (let ((body (list `(macrolet ((shadow-price (var)
                                     `(solution-shadow-price ,',solution ',var)))
                           ,@body))))
-      (if (typep var-list 'linear-problem)
+      (if (typep var-list 'problem)
         (let* ((problem var-list) ;alias for readability
-               (vars (variables problem))
-               (num-vars (+ (length vars) (length (constraints problem)))))
-          `(let ((,(objective-variable problem) (solution-objective-value ,solution))
+               (vars (problem-vars problem)))
+          `(let ((,(problem-objective-var problem) (solution-objective-value ,solution))
                  ,@(iter (for var in-vector vars)
                          (for i from 0)
                      (collect `(,var (aref (solution-variables ,solution) ,i)))))
-             (declare (ignorable ,(objective-variable problem) ,@(map 'list #'identity vars)))
+             (declare (ignorable ,(problem-objective-var problem) ,@(map 'list #'identity vars)))
              ,@body))
         `(let (,@(iter (for var in-sequence var-list)
                    (collect `(,var (solution-variable ,solution ',var)))))

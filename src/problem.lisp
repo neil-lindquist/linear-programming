@@ -23,56 +23,36 @@
            #:+
            #:*
 
-           #:linear-problem
-           #:lp-type
-           #:variables
-           #:objective-variable
-           #:objective-function
-           #:signed-vars
-           #:integer-vars
-           #:constraints)
+           #:problem
+           #:make-problem
+           #:problem-type
+           #:problem-vars
+           #:problem-objective-var
+           #:problem-objective-func
+           #:problem-signed-vars
+           #:problem-integer-vars
+           #:problem-constraints)
   (:documentation "Handles the representation of linear programming problems."))
 
 (in-package :linear-programming/problem)
 
-(defclass linear-problem ()
-  ((type :reader lp-type
-         :initarg :type
-         :type (member max min))
-   (variables :reader variables
-              :initarg :variables
-              :type (vector symbol)
-              :documentation "A vector with the decision variables of the problem")
-   (objective-var :reader objective-variable
-                  :initarg :objective-variable
-                  :initform (gensym "z")
-                  :type symbol
-                  :documentation "A symbol for the variable representing the objective function")
-   (objective :reader objective-function
-              :initarg :objective
-              :type list
-              :documentation "A linear expression for the objective function")
-   (signed-vars :reader signed-vars
-                :initarg :signed
-                :type list
-                :documentation "A list of variables that are non negative")
-   (integer-vars :reader integer-vars
-                 :initarg :integer
-                 :type list
-                 :documentation "A list of variables that are integer valued")
-   (constraints :reader constraints
-                :initarg :constraints
-                :type list
-                :documentation "A list of simple inequality contraints"))
-  (:documentation "The representation of a linear programming problem."))
+(defstruct problem
+  "The representation of a linear programming problem."
+  (type 'max :read-only t :type (member max min))
+  (vars #() :read-only t :type (vector symbol))
+  (objective-var '#:z :read-only t :type symbol)
+  (objective-func nil :read-only t :type list)
+  (signed-vars nil :read-only t :type list)
+  (integer-vars nil :read-only t :type list)
+  (constraints nil :read-only t :type list))
 
-(setf (documentation 'lp-type 'function) "Whether the problem is a `min` or `max` problem."
-      (documentation 'variables 'function) "An array of the variables specified in the problem."
-      (documentation 'objective-variable 'function) "The name of the objective function."
-      (documentation 'objective-function 'function) "The objective function as a linear expression alist."
-      (documentation 'signed-vars 'function) "A list of variables without positivity constraints."
-      (documentation 'integer-vars 'function) "A list of variables with integer constraints."
-      (documentation 'constraints 'function) "A list of (in)equality constraints.")
+(setf (documentation 'problem-type 'function) "Whether the problem is a `min` or `max` problem."
+      (documentation 'problem-vars 'function) "An array of the variables specified in the problem."
+      (documentation 'problem-problem-objective-var 'function) "The name of the objective function."
+      (documentation 'problem-objective-func 'function) "The objective function as a linear expression alist."
+      (documentation 'problem-signed-vars 'function) "A list of variables without positivity constraints."
+      (documentation 'problem-integer-vars 'function) "A list of variables with integer constraints."
+      (documentation 'problem-constraints 'function) "A list of (in)equality constraints.")
 
 (declaim (inline simple-eq))
 (defun simple-eq (op exp1 exp2)
@@ -147,13 +127,13 @@
              :description (format nil "~A is neither min nor max in objective function ~A"
                                       (first objective) objective)))
     (let* ((type (first objective))
-           (objective-function (parse-linear-expression (second objective)))
+           (objective-func (parse-linear-expression (second objective)))
            (parsed-constraints (parse-linear-constraints constraints))
            (eq-constraints (first parsed-constraints))
            (signed-constraints (second parsed-constraints))
            (integer-constraints (third parsed-constraints))
            ;collect all of the variables referenced
-           (var-list (remove-duplicates (mapcar #'car objective-function)))
+           (var-list (remove-duplicates (mapcar #'car objective-func)))
            (var-list (union var-list signed-constraints))
            (var-list (union var-list integer-constraints))
            (var-list (union var-list
@@ -164,14 +144,13 @@
            (variables (make-array (length var-list)
                                   :initial-contents var-list
                                   :element-type 'symbol)))
-      (make-instance 'linear-problem
-                     :type type
-                     :variables variables
-                     :objective-variable objective-var
-                     :objective objective-function
-                     :signed signed-constraints
-                     :integer integer-constraints
-                     :constraints eq-constraints))))
+      (make-problem :type type
+                    :vars variables
+                    :objective-var objective-var
+                    :objective-func objective-func
+                    :signed-vars signed-constraints
+                    :integer-vars integer-constraints
+                    :constraints eq-constraints))))
 
 
 (defmacro make-linear-problem (objective &rest constraints)

@@ -30,7 +30,7 @@
 
 (defstruct (tableau (:copier #:shallow-tableau-copy))
   "Contains the necessary information for a simplex tableau."
-  (problem nil :read-only t :type (or linear-problem artificial-linear-problem))
+  (problem nil :read-only t :type problem)
   (matrix #2A() :read-only t :type (simple-array real 2))
   (basis-columns #() :read-only t :type (simple-array * (*)))
   (var-count 0 :read-only t :type (integer 0 *))
@@ -54,29 +54,15 @@
         (tableau-constraint-count tableau)))
 
 
-(defclass artificial-linear-problem ()
-  ((problem :reader base-problem
-          :initarg :base-problem
-          :type linear-problem
-          :documentation "The underlying problem"))
-  (:documentation "Represents the linear problem when artificial variables are
-                  present when using a two-phase simplex."))
-(defmethod lp-type ((problem artificial-linear-problem))
-  (declare (ignore problem))
-  'min)
-(defmethod variables ((problem artificial-linear-problem))
-  (variables (base-problem problem)))
-
-
 (defun build-tableau (problem)
   "Creates the tableau from the given linear problem.  If the trivial basis is
    not feasible, instead a list is returned containing the two tableaus for a
    two-phase simplex method."
-  (when (/= 0 (length (signed-vars problem)))
+  (when (/= 0 (length (problem-signed-vars problem)))
     (error "Cannot currently handle possibly negative variables."))
-  (let* ((num-constraints (length (constraints problem)))
-         (num-slack (count-if-not (curry #'eq '=) (constraints problem) :key #'first))
-         (vars (variables problem))
+  (let* ((num-constraints (length (problem-constraints problem)))
+         (num-slack (count-if-not (curry #'eq '=) (problem-constraints problem) :key #'first))
+         (vars (problem-vars problem))
          (num-vars (length vars))
          (matrix (make-array (list (+ num-vars num-slack 1) (1+ num-constraints))
                             :element-type 'real
@@ -85,7 +71,7 @@
          (artificial-var-rows nil))
     ; constraint rows
     (iter (for row from 0 below num-constraints)
-          (for constraint in (constraints problem))
+          (for constraint in (problem-constraints problem))
       ;variables
       (iter (for col from 0 below num-vars)
             (for var = (aref vars col))
@@ -107,7 +93,7 @@
     ;objective row
     (iter (for col from 0 below num-vars)
           (for var = (aref vars col))
-      (when-let (value (cdr (assoc var (objective-function problem))))
+      (when-let (value (cdr (assoc var (problem-objective-func problem))))
         (setf (aref matrix col num-constraints) (- value))))
     (let ((main-tableau (make-tableau :problem problem
                                       :matrix matrix
@@ -141,8 +127,8 @@
                                            (aref matrix (+ num-vars num-slack) r))
                                      (when (member r artificial-var-rows)
                                        (sum (aref art-matrix c r))))))
-                           (make-tableau :problem (make-instance 'artificial-linear-problem
-                                                                 :base-problem problem)
+                           (make-tableau :problem (make-problem :type 'min ;artificial problem
+                                                                :vars (problem-vars problem))
                                          :matrix art-matrix
                                          :basis-columns art-basis-columns
                                          :var-count (+ num-vars num-slack num-art)
@@ -178,7 +164,7 @@
 (defun find-entering-column (tableau)
   "Gets the column to add to the basis"
   (let ((num-constraints (tableau-constraint-count tableau)))
-    (if (eq 'max (lp-type (tableau-problem tableau)))
+    (if (eq 'max (problem-type (tableau-problem tableau)))
       (iter (for i from 0 below (tableau-var-count tableau))
         (finding i minimizing (aref (tableau-matrix tableau) i num-constraints)
                   into col)
@@ -237,9 +223,9 @@
 (defun tableau-variable (tableau var)
   "Gets the value of the given variable from the tableau"
   (let ((problem (tableau-problem tableau)))
-    (if (eq var (objective-variable problem))
+    (if (eq var (problem-objective-var problem))
       (tableau-objective-value tableau)
-      (let* ((var-id (position var (variables problem)))
+      (let* ((var-id (position var (problem-vars problem)))
              (idx (position var-id (tableau-basis-columns tableau))))
         (cond
           ((null var-id) (error "~S is not a variable in the tableau" var))
@@ -252,7 +238,7 @@
 (declaim (inline tableau-shadow-price))
 (defun tableau-shadow-price (tableau var)
   "Gets the shadow price for the given variable from the tableau"
-  (if-let (idx (position var (variables (tableau-problem tableau))))
+  (if-let (idx (position var (problem-vars (tableau-problem tableau))))
     (aref (tableau-matrix tableau)
           idx (tableau-constraint-count tableau))
     (error "~S is not a variable in the tableau" var)))
@@ -264,17 +250,17 @@
    the tableau.  If a linear problem is instead passed as `var-list`, all
    of the problem's variables are bound."
   (once-only (tableau)
-    (if (typep var-list 'linear-problem)
+    (if (typep var-list 'problem)
       (let* ((problem var-list) ;alias for readability
-             (vars (variables problem))
-             (num-vars (+ (length vars) (length (constraints problem)))))
-        `(let ((,(objective-variable problem) (tableau-objective-value ,tableau))
+             (vars (problem-vars problem))
+             (num-vars (+ (length vars) (length (problem-constraints problem)))))
+        `(let ((,(problem-objective-var problem) (tableau-objective-value ,tableau))
                ,@(iter (for var in-vector vars)
                        (for i from 0)
                    (collect `(,var (if-let (idx (position ,i (tableau-basis-columns ,tableau)))
                                        (aref (tableau-matrix ,tableau) ,num-vars idx)
                                        0)))))
-           (declare (ignorable ,(objective-variable problem) ,@(map 'list #'identity vars)))
+           (declare (ignorable ,(problem-objective-var problem) ,@(map 'list #'identity vars)))
            ,@body))
       `(let (,@(iter (for var in-sequence var-list)
                  (collect `(,var (tableau-variable ,tableau ',var)))))

@@ -14,7 +14,7 @@
 
 (defun tableau-matrix-equal (exp-mat exp-vars act-tab)
   (let* ((act-mat (tableau-matrix act-tab))
-         (act-vars (variables (tableau-problem act-tab))))
+         (act-vars (problem-vars (tableau-problem act-tab))))
     (if (equalp exp-vars act-vars)
       (equalp exp-mat act-mat)
       (and
@@ -33,7 +33,7 @@
 (defun vars-to-cols (vars tab)
   (map 'vector (lambda (var)
                  (if (symbolp var)
-                   (position var (variables (tableau-problem tab)))
+                   (position var (problem-vars (tableau-problem tab)))
                    var))
                vars))
 
@@ -69,7 +69,7 @@
     (is (= 2 (length tableaus)))
     ; art-tableau
     (is-true (tableau-p art-tableau))
-    (is (eq 'min (lp-type (tableau-problem art-tableau))))
+    (is (eq 'min (problem-type (tableau-problem art-tableau))))
     (is (= 6 (tableau-var-count art-tableau)))
     (is (= 3 (tableau-constraint-count art-tableau)))
     (is (tableau-matrix-equal #2A((2 0 2 2) (1 1 1 1) (0 1 1 1) (1 0 0 0) (0 1 0 0) (0 0 1 0) (8 7 8 8))
@@ -98,7 +98,7 @@
     (is (= 2 (length tableaus)))
     ; art-tableau
     (is-true (tableau-p art-tableau))
-    (is (eq 'min (lp-type (tableau-problem art-tableau))))
+    (is (eq 'min (problem-type (tableau-problem art-tableau))))
     (is (= 7 (tableau-var-count art-tableau)))
     (is (= 3 (tableau-constraint-count art-tableau)))
     (is (tableau-matrix-equal #2A((2 0 1 1) (1 1 0 0) (0 1 1 1) (1 0 0 0) (0 1 0 0) (0 0 -1 -1) (0 0 1 0) (8 7 1 1))
@@ -122,10 +122,10 @@
                                        (<= (+ (* 2 x) y) 8)
                                        (<= (+ y z) 7)))
          (tableau (build-tableau problem))
-         (tableau2 (pivot-row tableau (position 'x (variables problem)) 0)))
+         (tableau2 (pivot-row tableau (position 'x (problem-vars problem)) 0)))
     (is (not (eq tableau tableau2)))
     (is (= 0 (tableau-objective-value tableau))) ;ensure original not mutated
-    (is (eq tableau (n-pivot-row tableau (position 'x (variables problem)) 0)))
+    (is (eq tableau (n-pivot-row tableau (position 'x (problem-vars problem)) 0)))
 
     (is-true (tableau-p tableau2))
     (is (eq problem (tableau-problem tableau2)))
@@ -198,7 +198,7 @@
     (is (equal 3 (tableau-constraint-count tab2)))
 
     ; art-tableau
-    (is (eq 'min (lp-type (tableau-problem art-tab))))
+    (is (eq 'min (problem-type (tableau-problem art-tab))))
     (is (equal 6 (tableau-var-count art-tab)))
     (is (equal 3 (tableau-constraint-count art-tab)))
     (is (tableau-matrix-equal #2A((1 0 0 0) (1/2 1 0 0) (0 0 1 0) (1/2 1 -1 0) (0 1 0 0) (0 -1 1 -1) (4 7 0 0))
@@ -228,7 +228,7 @@
     (is (eq main-tab (n-solve-tableau tableaus)))
 
     ; art-tableau
-    (is (eq 'min (lp-type (tableau-problem art-tab))))
+    (is (eq 'min (problem-type (tableau-problem art-tab))))
     (is (equal 7 (tableau-var-count art-tab)))
     (is (equal 3 (tableau-constraint-count art-tab)))
     (is (or (and (tableau-matrix-equal #2A((0 0 1 0) (1 1 0 0) (-2 1 1 0) (1 0 0 0) (0 1 0 0) (2 0 -1 0) (-2 0 1 -1) (6 7 1 0))
