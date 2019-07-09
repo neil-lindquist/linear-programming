@@ -6,14 +6,17 @@
         :linear-programming/conditions
         :linear-programming/problem
         :linear-programming/simplex)
-  (:export #:with-solved-problem
-           #:shadow-price
-           #:solve-problem
+  (:export #:solve-problem
+
            #:solution
            #:solution-problem
            #:solution-objective-value
            #:solution-variable
-           #:solution-shadow-price)
+           #:solution-shadow-price
+
+           #:with-solved-problem
+           #:with-solution-variables
+           #:shadow-price)
   (:documentation "The high level linear programming solver interface.  This
                    package abstracts away some of the complexities of the
                    simplex method, including integer constraints.  See
@@ -36,8 +39,11 @@
 (declaim (inline solution-variable))
 (defun solution-variable (solution var)
   "Gets the value of the given variable in the solution"
-  (aref (solution-variables solution)
-        (position var (variables (solution-problem solution)))))'
+  (let ((problem (solution-problem solution)))
+    (if (eq var (objective-variable problem))
+      (solution-objective-value solution)
+      (aref (solution-variables solution)
+            (position var (variables (solution-problem solution)))))))
 
 (declaim (inline solution-shadow-price))
 (defun solution-shadow-price (solution var)
@@ -136,10 +142,27 @@
   (let ((problem (parse-linear-problem objective-func constraints)))
     (with-gensyms (solution)
       `(let ((,solution (solve-problem ,problem)))
-         (let ((,(objective-variable problem) (solution-objective-value ,solution))
-               ,@(iter (for var in-vector (variables problem))
-                       (for i from 0)
-                   (collect `(,var (aref (solution-variables ,solution) ,i)))))
-           (macrolet ((shadow-price (var)
-                        `(solution-shadow-price ,',solution ',var)))
-             ,@body))))))
+         (with-solution-variables ,problem ,solution
+           ,@body)))))
+
+(defmacro with-solution-variables (var-list solution &body body)
+  "Evaluates the body with the variables in `var-list` bound to their values in
+   the solution.  If a linear problem is instead passed as `var-list`, all
+   of the problem's variables are bound."
+  (once-only (solution)
+    (let ((body (list `(macrolet ((shadow-price (var)
+                                    `(solution-shadow-price ,',solution ',var)))
+                          ,@body))))
+      (if (typep var-list 'linear-problem)
+        (let* ((problem var-list) ;alias for readability
+               (vars (variables problem))
+               (num-vars (+ (length vars) (length (constraints problem)))))
+          `(let ((,(objective-variable problem) (solution-objective-value ,solution))
+                 ,@(iter (for var in-vector vars)
+                         (for i from 0)
+                     (collect `(,var (aref (solution-variables ,solution) ,i)))))
+             (declare (ignorable ,(objective-variable problem) ,@(map 'list #'identity vars)))
+             ,@body))
+        `(let (,@(iter (for var in-sequence var-list)
+                   (collect `(,var (solution-variable ,solution ',var)))))
+           ,@body)))))

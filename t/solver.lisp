@@ -72,3 +72,15 @@
     (is (= 0 (shadow-price y)))
     (is (= 0 z))
     (is (= 1/2 (shadow-price z)))))
+
+(test with-solution-variables
+  (let* ((problem (make-linear-problem (max (= w (+ x (* 4 y) (* 3 z))))
+                                       (<= (+ (* 2 x) y) 8)
+                                       (<= (+ y z) 7)))
+         (solution (solve-problem problem)))
+    (with-solution-variables (w x z) solution
+      (is (= 57/2 w))
+      (is (= 1/2 x))
+      (is (= 0 (shadow-price x)))
+      (is (= 0 z))
+      (is (= 1/2 (shadow-price z))))))
