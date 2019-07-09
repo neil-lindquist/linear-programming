@@ -105,7 +105,8 @@
   (handler-case
     (solve-tableau
       (build-tableau
-        (make-problem :type (problem-type problem)
+        (linear-programming/problem::make-problem
+                      :type (problem-type problem)
                       :vars (problem-vars problem)
                       :objective-var (problem-objective-var problem)
                       :objective-func (problem-objective-func problem)

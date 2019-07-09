@@ -24,7 +24,6 @@
            #:*
 
            #:problem
-           #:make-problem
            #:problem-type
            #:problem-vars
            #:problem-objective-var
@@ -48,7 +47,7 @@
 
 (setf (documentation 'problem-type 'function) "Whether the problem is a `min` or `max` problem."
       (documentation 'problem-vars 'function) "An array of the variables specified in the problem."
-      (documentation 'problem-problem-objective-var 'function) "The name of the objective function."
+      (documentation 'problem-objective-var 'function) "The name of the objective function."
       (documentation 'problem-objective-func 'function) "The objective function as a linear expression alist."
       (documentation 'problem-signed-vars 'function) "A list of variables without positivity constraints."
       (documentation 'problem-integer-vars 'function) "A list of variables with integer constraints."

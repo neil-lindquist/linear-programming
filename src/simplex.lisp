@@ -127,7 +127,8 @@
                                            (aref matrix (+ num-vars num-slack) r))
                                      (when (member r artificial-var-rows)
                                        (sum (aref art-matrix c r))))))
-                           (make-tableau :problem (make-problem :type 'min ;artificial problem
+                           (make-tableau :problem (linear-programming/problem::make-problem
+                                                                :type 'min ;artificial problem
                                                                 :vars (problem-vars problem))
                                          :matrix art-matrix
                                          :basis-columns art-basis-columns
