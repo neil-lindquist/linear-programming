@@ -29,15 +29,12 @@ exec ros -Q -- $0 "$@"
 (defgeneric print-documentation (type name stream)
   (:documentation "Outputs the documentation for the named system"))
 
-(defmethod print-documentation ((_ (eql 'macro)) name stream)
-  (doc-print stream "MACRO" name (sb-introspect:function-lambda-list name)
-                    (documentation name 'function)))
-
 (defmethod print-documentation ((_ (eql 'function)) name stream)
   (doc-print stream
-          (if (typep (symbol-function name) 'standard-generic-function)
-            "GENERIC"
-            "FUNCTION")
+          (cond
+            ((macro-function name) "MACRO")
+            ((typep (symbol-function name) 'standard-generic-function) "GENERIC")
+            (t "FUNCTION"))
           name
           (sb-introspect:function-lambda-list name)
           (documentation name 'function)))
@@ -60,8 +57,6 @@ exec ros -Q -- $0 "$@"
 
 (defmethod symbol-bound-p ((_ (eql 'function)) symbol)
   (fboundp symbol))
-(defmethod symbol-bound-p ((_ (eql 'macro)) symbol)
-  (macro-function symbol))
 (defmethod symbol-bound-p ((_ (eql 'class)) symbol)
   (find-class symbol nil))
 (defmethod symbol-bound-p ((_ (eql 'variable)) symbol)
@@ -73,7 +68,7 @@ exec ros -Q -- $0 "$@"
   (let ((package (find-package package-name)))
     (print-documentation 'package (package-name package) stream)
     (do-external-symbols (symbol package)
-      (dolist (type '(function macro class variable))
+      (dolist (type '(function class variable))
         (when (and (eq (symbol-package symbol) package) ;don't document reexported symbols
                    (symbol-bound-p type symbol))
           (print-documentation type symbol stream))))))
