@@ -42,14 +42,20 @@
   (let ((problem (solution-problem solution)))
     (if (eq var (problem-objective-var problem))
       (solution-objective-value solution)
-      (aref (solution-variables solution)
-            (position var (problem-vars (solution-problem solution)))))))
+      (let ((i (position var (problem-vars (solution-problem solution)))))
+        (if i
+          (aref (solution-variables solution) i)
+          (error "~S is not a variable in the problem" var))))))
+
 
 (declaim (inline solution-shadow-price))
 (defun solution-shadow-price (solution var)
   "Gets the shadow price of the given variable in the solution"
-  (aref (solution-shadow-prices solution)
-        (position var (problem-vars (solution-problem solution)))))
+  (let ((i (position var (problem-vars (solution-problem solution)))))
+    (if i
+     (aref (solution-shadow-prices solution) i)
+     (error "~S is not a variable in the problem" var))))
+
 
 (defun solve-problem (problem)
   "Solves the given linear problem"

@@ -16,8 +16,6 @@
 
 
 (test solve-problem
-  (declare (notinline solution-variable))
-
   (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
                                        (<= (+ (* 2 x) y) 8)
                                        (<= (+ y z) 7)))
@@ -60,6 +58,25 @@
     (is (= 0 (solution-shadow-price solution 'x)))
     (is (= 0 (solution-shadow-price solution 'y)))))
 
+(test solution-variable
+  (declare (notinline solution-variable))
+  (declare (notinline solution-shadow-price))
+
+  (let* ((problem (make-linear-problem (max (= w (+ x (* 4 y) (* 3 z))))
+                                       (<= (+ (* 2 x) y) 8)
+                                       (<= (+ y z) 7)))
+         (solution (solve-problem problem)))
+    (is (= 57/2 (solution-variable solution 'w)))
+    (is (= 1/2 (solution-variable solution 'x)))
+    (is (= 7 (solution-variable solution 'y)))
+    (is (= 0 (solution-variable solution 'z)))
+    (signals error (solution-variable solution 'v))
+
+    (signals error (solution-shadow-price solution 'w))
+    (is (= 0 (solution-shadow-price solution 'x)))
+    (is (= 0 (solution-shadow-price solution 'y)))
+    (is (= 1/2 (solution-shadow-price solution 'z)))
+    (signals error (solution-shadow-price solution 'v))))
 
 (test with-solved-problem
   (with-solved-problem ((max (= w (+ x (* 4 y) (* 3 z))))
