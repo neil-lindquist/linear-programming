@@ -58,8 +58,6 @@
   "Creates the tableau from the given linear problem.  If the trivial basis is
    not feasible, instead a list is returned containing the two tableaus for a
    two-phase simplex method."
-  (when (/= 0 (length (problem-signed-vars problem)))
-    (error "Cannot currently handle possibly negative variables."))
   (let* ((num-constraints (length (problem-constraints problem)))
          (num-slack (count-if-not (curry #'eq '=) (problem-constraints problem) :key #'first))
          (vars (problem-vars problem))

@@ -12,7 +12,6 @@
 
            #:min
            #:max
-           #:signed
            #:integer
            #:binary
            #:<=
@@ -28,7 +27,6 @@
            #:problem-vars
            #:problem-objective-var
            #:problem-objective-func
-           #:problem-signed-vars
            #:problem-integer-vars
            #:problem-constraints)
   (:documentation "Handles the representation of linear programming problems."))
@@ -41,7 +39,6 @@
   (vars #() :read-only t :type (vector symbol))
   (objective-var '#:z :read-only t :type symbol)
   (objective-func nil :read-only t :type list)
-  (signed-vars nil :read-only t :type list)
   (integer-vars nil :read-only t :type list)
   (constraints nil :read-only t :type list))
 
@@ -49,7 +46,6 @@
       (documentation 'problem-vars 'function) "An array of the variables specified in the problem."
       (documentation 'problem-objective-var 'function) "The name of the objective function."
       (documentation 'problem-objective-func 'function) "The objective function as a linear expression alist."
-      (documentation 'problem-signed-vars 'function) "A list of variables without positivity constraints."
       (documentation 'problem-integer-vars 'function) "A list of variables with integer constraints."
       (documentation 'problem-constraints 'function) "A list of (in)equality constraints.")
 
@@ -70,7 +66,7 @@
 
 (defun parse-linear-constraints (exprs)
   "Parses the list of constraints and returns a list containing a list of simple
-   inequalities, a list of signed variables, and a list of integer variables"
+   inequalities and a list of integer variables"
   (iter (for expr in exprs)
     (case (first expr)
       ((<= <)
@@ -82,9 +78,6 @@
       ((=)
        (collect (cons '= (mapcar 'parse-linear-expression (rest expr)))
                 into equalities))
-      ((signed)
-       (unioning (rest expr)
-                 into signed))
       ((integer)
        (unioning (rest expr)
                  into integer))
@@ -104,7 +97,7 @@
                                  (collect (simple-eq (first constraint)
                                                      (nth (1- i) constraint)
                                                      (nth i constraint))))))))
-        (return (list simple-eqs signed integer))))))
+        (return (list simple-eqs integer))))))
 
 
 (defun parse-linear-problem (objective-exp constraints)
@@ -130,11 +123,9 @@
            (objective-func (parse-linear-expression (second objective)))
            (parsed-constraints (parse-linear-constraints constraints))
            (eq-constraints (first parsed-constraints))
-           (signed-constraints (second parsed-constraints))
-           (integer-constraints (third parsed-constraints))
+           (integer-constraints (second parsed-constraints))
            ;collect all of the variables referenced
            (var-list (remove-duplicates (mapcar #'car objective-func)))
-           (var-list (union var-list signed-constraints))
            (var-list (union var-list integer-constraints))
            (var-list (union var-list
                             (reduce (lambda (l1 l2) (union l1 (mapcar #'car l2)))
@@ -148,7 +139,6 @@
                     :vars variables
                     :objective-var objective-var
                     :objective-func objective-func
-                    :signed-vars signed-constraints
                     :integer-vars integer-constraints
                     :constraints eq-constraints))))
 

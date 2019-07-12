@@ -116,7 +116,6 @@
                       :vars (problem-vars problem)
                       :objective-var (problem-objective-var problem)
                       :objective-func (problem-objective-func problem)
-                      :signed-vars (problem-signed-vars problem)
                       :integer-vars (problem-integer-vars problem)
                       :constraints (append extra-constraints
                                            (problem-constraints problem)))))
