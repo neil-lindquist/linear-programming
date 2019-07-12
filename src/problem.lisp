@@ -117,6 +117,7 @@
                           (second objective-exp)
                           (gensym "z"))))
     (when (and (not objective-var-p)
+               (listp (second objective))
                (eq (first (second objective)) '=))
       (setf objective-var (second (second objective)))
       (setf objective (list (first objective) (third (second objective))))
