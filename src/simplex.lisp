@@ -263,8 +263,7 @@
 
 (defmacro with-tableau-variables (var-list tableau &body body)
   "Evaluates the body with the variables in `var-list` bound to their values in
-   the tableau.  If a linear problem is instead passed as `var-list`, all
-   of the problem's variables are bound."
+   the tableau."
   (once-only (tableau)
     (if (typep var-list 'problem)
       (let* ((problem var-list) ;alias for readability

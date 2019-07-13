@@ -152,8 +152,7 @@
 
 (defmacro with-solution-variables (var-list solution &body body)
   "Evaluates the body with the variables in `var-list` bound to their values in
-   the solution.  If a linear problem is instead passed as `var-list`, all
-   of the problem's variables are bound."
+   the solution."
   (once-only (solution)
     (let ((body (list `(macrolet ((shadow-price (var)
                                     `(solution-shadow-price ,',solution ',var)))
