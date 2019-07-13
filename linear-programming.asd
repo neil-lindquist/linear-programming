@@ -1,9 +1,13 @@
 
 (defsystem "linear-programming"
   :description "A library for solving linear programming problems"
-  :version "0.1.0"
+  :version "1.0.0"
   :author "Neil Lindquist <NeilLindquist5@gmail.com>"
   :licence "MIT"
+  :homepage "https://neil-lindquist.github.io/linear-programming/"
+  :bug-tracker "https://github.com/neil-lindquist/linear-programming/issues"
+  :mailto "NeilLindquist5@gmail.com"
+
   :class :package-inferred-system
   :pathname "src"
   :depends-on ((:version "asdf" "3.1.6")
