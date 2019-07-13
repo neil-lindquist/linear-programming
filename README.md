@@ -1,6 +1,10 @@
 # Common Lisp Linear Programming
 [![Build Status](https://travis-ci.org/neil-lindquist/linear-programming.svg?branch=master)](https://travis-ci.org/neil-lindquist/linear-programming)
+[![Build status](https://ci.appveyor.com/api/projects/status/8rx1x28xxx7tkis4/branch/master?svg=true)](https://ci.appveyor.com/project/neil-lindquist/linear-programming/branch/master)
 [![Coverage Status](https://coveralls.io/repos/github/neil-lindquist/linear-programming/badge.svg?branch=master)](https://coveralls.io/github/neil-lindquist/linear-programming?branch=master)
+
+[![GitHub release](https://img.shields.io/github/release/neil-lindquist/linear-programming.svg)](https://github.com/neil-lindquist/linear-programming/releases)
+[![Current documentation](https://img.shields.io/badge/docs-current-informational.svg)](https://neil-lindquist.github.io/linear-programming/)
 
 
 This is a Common Lisp library for solving linear programming problems.
@@ -12,6 +16,8 @@ Then, you can load it using `(ql:quickload :linear-programming)`.
 If you are not using quicklisp, place the repository somewhere where ASDF can find it, then load it with `(asdf:load-system :linear-programming)`.
 
 ## Usage
+See [neil-lindquist.github.io/linear-programming/](https://neil-lindquist.github.io/linear-programming/) for further documentation.
+
 Consider the following linear programming problem.
 > maximize  x + 4y + 3z  
 > such that  
