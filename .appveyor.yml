@@ -1,0 +1,31 @@
+image: Visual Studio 2017
+
+platform:
+    - x64
+
+clone_folder: C:\Users\appveyor\.roswell\local-projects\linear-programming\
+
+environment:
+  BIT: 64
+  COMPILER: msys2
+  ROSWELL_ZIP: https://ci.appveyor.com/api/projects/snmsts/roswell-en89n/artifacts/Roswell-x86_64.zip?branch=master&job=Environment%3A%20MSYS2_ARCH%3Dx86_64,%20MSYS2_BITS%3D64,%20MSYSTEM%3DMINGW64,%20METHOD%3Dcross
+  MSYS2_ARCH: x86_64
+  MSYS2_DIR: msys64
+  MSYSTEM: MINGW64
+  PATH: c:\msys64\usr\bin;c:\msys64\mingw64\bin;%USERPROFILE%\roswell;%PATH%
+  PLATFORM: x64
+  matrix:
+    - LISP: sbcl-bin
+
+install:
+  - bash -lc 'pacman -Sy --noconfirm mingw64/mingw-w64-x86_64-zeromq mingw32/mingw-w64-i686-zeromq'
+  - ps: appveyor DownloadFile $Env:ROSWELL_ZIP -FileName Roswell.zip
+  - 7z x -o%USERPROFILE% Roswell.zip
+  - ros install %LISP%
+  - ros install neil-lindquist/ci-utils
+  - ros config
+
+build: off
+
+test_script:
+  - ros exec run-fiveam.ros -e t linear-programming-tests:linear-programming
