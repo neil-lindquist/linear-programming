@@ -54,3 +54,14 @@
     (is (<= 15.37 d3 15.38)
         (format nil "Computed ~A dept 3 runs, instead of 15.37-15.38" (float d3)))
     (is (= 0 (shadow-price d3)))))
+
+
+(test excessive-constraints
+  ; This problem caused some issues when trying to solve it.
+  (with-solved-problem ((min a)
+                        (<= 0 (+ 148 (* 49 a)) (* 255 a))
+                        (<= 0 (+ 135 (* 49 a)) (* 255 a))
+                        (<= 0 (+ 134 (* 49 a)) (* 255 a))
+                        (<= 0 a 1))
+    (is (= 74/103 a))
+    (is (= 0 (shadow-price a)))))

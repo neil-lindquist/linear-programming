@@ -154,8 +154,7 @@
       (unless (= r changing-row)
         (let ((scale (aref matrix entering-col r)))
           (iter (for c from 0 below col-count)
-            (setf (aref matrix c r)
-                  (- (aref matrix c r) (* scale (aref matrix c changing-row)))))))))
+            (decf (aref matrix c r) (* scale (aref matrix c changing-row))))))))
   (setf (aref (tableau-basis-columns tableau) changing-row) entering-col)
   tableau)
 
@@ -203,10 +202,28 @@
            (main-tab (second tableau)))
        (unless (= 0 (tableau-objective-value solved-art-tab))
          (error 'infeasible-problem-error))
-       (iter (for i from 0 below (length (tableau-basis-columns solved-art-tab)))
-         (when (/= (aref (tableau-basis-columns solved-art-tab) i)
-                   (aref (tableau-basis-columns main-tab) i))
-           (n-pivot-row main-tab (aref (tableau-basis-columns solved-art-tab) i) i)))
+
+       ; Have starting basis, use solve-art-tab to set main-tab to that basis
+       (let ((main-matrix (tableau-matrix main-tab))
+             (art-matrix (tableau-matrix solved-art-tab))
+             (num-vars (tableau-var-count main-tab))
+             (num-constraints (tableau-constraint-count main-tab)))
+         ; Copy tableau coefficients/RHS
+         (iter (for row from 0 below num-constraints)
+           (iter (for col from 0 below num-vars)
+             (setf (aref main-matrix col row) (aref art-matrix col row)))
+           (setf (aref main-matrix num-vars row)
+                 (aref art-matrix (tableau-var-count solved-art-tab) row)))
+
+         ; Update basis columns and objective row to match
+         (iter (for basis-col in-vector (tableau-basis-columns solved-art-tab))
+               (for i from 0)
+           (setf (aref (tableau-basis-columns main-tab) i) basis-col)
+           (let ((scale (aref main-matrix basis-col num-constraints)))
+             (when (/= 0 scale)
+               (iter (for col from 0 to num-vars)
+                 (decf (aref main-matrix col num-constraints)
+                       (* scale (aref main-matrix col i))))))))
        (n-solve-tableau main-tab)))
     ((tableau-p tableau)
      (iter (for entering-column = (find-entering-column tableau))
