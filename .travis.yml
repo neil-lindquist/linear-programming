@@ -32,12 +32,13 @@ cache:
 
 install:
   - curl -L https://raw.githubusercontent.com/roswell/roswell/release/scripts/install-for-ci.sh | sh
+  - ros install neil-lindquist/ci-utils
   # CCL's default asdf is slightly too old, so need to use a newer version
   - mkdir -p ~/common-lisp
   - if [ "$LISP" == "ccl-bin" ]; then git clone https://gitlab.common-lisp.net/asdf/asdf.git ~/common-lisp; fi
 
 script:
-  - roswell/run-fiveam.ros -e t linear-programming-test:linear-programming
+  - run-fiveam -e t linear-programming-test:linear-programming
 
 before_deploy:
   - roswell/generate-docs.ros
