@@ -22,7 +22,7 @@ Consider the following linear programming problem.
 > * y + z <= 7
 
 This problem can be represented as follows.
-```
+```common-lisp
 (parse-linear-problem
   '(max (= w (+ x (* 4 y) (* 3 z))))
   '((<= (+ (* 2 x) y) 8)
