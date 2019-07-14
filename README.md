@@ -8,13 +8,19 @@
 
 
 This is a Common Lisp library for solving linear programming problems.
+It is implemented in pure Common Lisp, instead of calling a high performance library.
+This has the advantage of being dependent on only a couple community standard libraries (ASDF, Alexandria, Iterate).
+However, it limits the performance of solving larger problems.
+If there is interest in a high performance backend, let me know; it shouldn't be hard to make the backend replaceable.
 
 ## Installation
 The linear-programming library is not yet in the main Quicklisp distribution, just Ultralisp.
 The Ultralisp dist can be added by running `(ql-dist:install-dist "http://dist.ultralisp.org/" :prompt nil)`.
 Then, this library can be loaded with `(ql:quickload :linear-programming)`.
-If you are not using Quicklisp, place the repository somewhere where ASDF can find it, then load it with `(asdf:load-system :linear-programming)`.
 You can check that it works by running `(asdf:test-system :linear-programming)`.
+
+If you are not using Quicklisp, place this repository, Alexandria, and Iterate somewhere where ASDF can find them.
+Then, it can be loaded with `(asdf:load-system :linear-programming)` and tested as above.
 
 
 ## Usage
@@ -27,12 +33,13 @@ Consider the following linear programming problem.
 > * y + z <= 7
 
 First, the problem needs to be specified.
+Problems are specified with a simple DSL, as described in the [syntax reference](https://neil-lindquist.github.io/linear-programming/linear-problem-syntax).
 ```common-lisp
 (use-package :linear-programming)
 
-(defvar problem (make-linear-problem (max (= w (+ x (* 4 y) (* 3 z))))
-                                     (<= (+ (* 2 x) y) 8)
-                                     (<= (+ y z) 7)))
+(defvar problem (parse-linear-problem '(max (= w (+ x (* 4 y) (* 3 z))))
+                                      '((<= (+ (* 2 x) y) 8)
+                                        (<= (+ y z) 7))))
 ```
 Once the problem is created, it can be solved with the simplex method.
 ```common-lisp
@@ -51,9 +58,22 @@ Finally, the optimal tableau can be inspected to get the resulting objective fun
 ;; y = 7 (shadow price: 0)
 ;; z = 0 (shadow price: 1/2)
 ```
-Alternatively, the `with-solved-problem` macro combines these steps and binds the solution variables.
+Alternatively, the `with-solution-variables` and `with-solved-problem` macros simplify some steps and binds the solution variables in their bodies.
 
 ```common-lisp
+(with-solution-variables (w x y z) solution
+  (format t "Objective value solution: ~A~%" w)
+  (format t "x = ~A (shadow price: ~A)~%" x (shadow-price solution 'x))
+  (format t "y = ~A (shadow price: ~A)~%" y (shadow-price solution 'y))
+  (format t "z = ~A (shadow price: ~A)~%" z (shadow-price solution 'z)))
+
+;; ==>
+;; Objective value solution: 57/2
+;; x = 1/2 (shadow price: 0)
+;; y = 7 (shadow price: 0)
+;; z = 0 (shadow price: 1/2)
+
+
 (with-solved-problem ((max (= w (+ x (* 4 y) (* 3 z))))
                       (<= (+ (* 2 x) y) 8)
                       (<= (+ y z) 7))

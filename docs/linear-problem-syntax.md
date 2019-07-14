@@ -4,7 +4,7 @@ title: Linear Problem DSL
 meta-description: The specification of the Linear Programming Problem DSL
 ---
 
-To effectively describe linear programming problems, `parse-linear-problem` and`make-linear-problem` uses a basic DSL.
+To effectively describe linear programming problems, `parse-linear-problem` uses a basic DSL.
 A linear programming problem is described with an *optimization-function* form, followed by the *constraint* forms, both of which are described by the following grammar.
 
 + *objective-function* &#x2192; (min\|max *linear-expression*) \| (= *objective-variable* (min\|max *linear-expression*)) \| (min\|max (= *objective-variable* *linear-expression*))  
@@ -23,12 +23,11 @@ Consider the following linear programming problem.
 
 This problem can be represented as follows.
 ```
-(make-linear-problem
-  (max (= w (+ x (* 4 y) (* 3 z))))
-  (<= (+ (* 2 x) y) 8)
-  (<= (+ y z) 7)))
+(parse-linear-problem
+  '(max (= w (+ x (* 4 y) (* 3 z))))
+  '((<= (+ (* 2 x) y) 8)
+    (<= (+ y z) 7)))
 ```
-Alternatively, `parse-linear-problem` does the same thing as a function that takes the list representing the objective function and a list of constraints.
 
 
 ### Simple Constraints
