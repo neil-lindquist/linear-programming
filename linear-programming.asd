@@ -7,6 +7,7 @@
   :homepage "https://neil-lindquist.github.io/linear-programming/"
   :bug-tracker "https://github.com/neil-lindquist/linear-programming/issues"
   :mailto "NeilLindquist5@gmail.com"
+  :source-control (:git "https://github.com/neil-lindquist/linear-programming.git")
 
   :class :package-inferred-system
   :pathname "src"
