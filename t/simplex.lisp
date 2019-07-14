@@ -45,6 +45,19 @@
 
 (test build-tableau
   (declare (notinline tableau-objective-value)) ; for coverage purposes
+
+  (let* ((problem (linear-programming/problem::make-problem
+                     :type 'max
+                     :vars #(x y)
+                     :objective-var '#:z
+                     :objective-func '((x . 1) (y . 2))
+                     :integer-vars '()
+                     :constraints '((<= ((x . 5) (y . 1)) 10)
+                                    (<= ((x . 1) (y . 7)) 18)
+                                    (/= ((x . 1) (y . 1)) 5)))))
+    (signals parsing-error (build-tableau problem)))
+
+
   (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
                                        (<= (+ (* 2 x) y) 8)
                                        (<= (+ y z) 7)))
@@ -148,6 +161,9 @@
   :in simplex
   :description "The suite to test solve-tableau and n-solve-tableau")
 (in-suite solve-tableau)
+
+(test errors
+  (signals type-error (n-solve-tableau "max x + y st 2x+y <= 5")))
 
 (test basic-problem
   (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
@@ -271,6 +287,7 @@
 (in-suite simplex)
 
 (test copy-tableau
+  (declare (notinline copy-tableau))
   (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
                                        (<= (+ (* 2 x) y) 8)
                                        (<= (+ y z) 7)))
