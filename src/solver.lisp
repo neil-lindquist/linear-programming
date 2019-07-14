@@ -89,9 +89,18 @@
       (let* ((entry (pop stack))
              (tab (build-and-solve problem entry)))
            (cond
-             ((eq tab :infeasible)) ;NO OP
+             ; Reached an infeasible leaf.  Do nothing
+             ((eq tab :infeasible))
+
+             ; This branch can't contain the optimal solution.  Do nothing
+             ((and (violated-integer-constraint tab)
+                   (not (funcall comparator current-best (tableau-objective-value tab)))))
+
+             ; Not integral, but not suboptimal.  Add children to stack
              ((violated-integer-constraint tab)
               (setf stack (append (gen-entries tab entry) stack)))
+
+             ; Integral.  If better than best, save this result.
              ((or (not current-best)
                   (funcall comparator current-best (tableau-objective-value tab)))
               (setf current-best (tableau-objective-value tab)
