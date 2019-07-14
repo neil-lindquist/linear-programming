@@ -25,6 +25,8 @@
 
 (in-package :linear-programming/solver)
 
+;;; Solution object
+
 (defstruct solution
   "Represents a solution to a linear programming problem."
   (problem nil :read-only t :type problem)
@@ -57,17 +59,7 @@
      (error "~S is not a variable in the problem" var))))
 
 
-(defun solve-problem (problem)
-  "Solves the given linear problem"
-  (let ((tableau (solve-tableau (build-tableau problem))))
-    (if (every (lambda (var)
-                    (integerp (tableau-variable tableau var)))
-               (problem-integer-vars problem))
-      (form-solution problem tableau)
-      (branch-and-bound problem tableau))))
-
-
-;;;;;;;;;; Branch and Bound ;;;;;;;;;;
+;;; Branch and bound helpers
 
 (defun gen-entries (tableau entry)
   "Generates new entries to correct one of the integer constraints"
@@ -77,36 +69,6 @@
                  entry)
           (list* `(>= ((,split-var . 1)) ,(ceiling split-var-val))
                  entry))))
-
-(defun branch-and-bound (problem first-tableau)
-  "Applies the branch and bound method to the given problem and initial tableau
-   and returns a solution object with the final result"
-  (let ((current-best nil)
-        (current-solution nil)
-        (stack (gen-entries first-tableau '()))
-        (comparator (if (eq (problem-type problem) 'max) '< '>)))
-    (iter (while stack)
-      (let* ((entry (pop stack))
-             (tab (build-and-solve problem entry)))
-           (cond
-             ; Reached an infeasible leaf.  Do nothing
-             ((eq tab :infeasible))
-
-             ; This branch can't contain the optimal solution.  Do nothing
-             ((and (violated-integer-constraint tab)
-                   (not (funcall comparator current-best (tableau-objective-value tab)))))
-
-             ; Not integral, but not suboptimal.  Add children to stack
-             ((violated-integer-constraint tab)
-              (setf stack (append (gen-entries tab entry) stack)))
-
-             ; Integral.  If better than best, save this result.
-             ((or (not current-best)
-                  (funcall comparator current-best (tableau-objective-value tab)))
-              (setf current-best (tableau-objective-value tab)
-                    current-solution tab)))))
-    (form-solution problem current-solution)))
-
 
 (defun violated-integer-constraint (tableau)
   "Gets a variable that is required to be an integer but is not"
@@ -120,17 +82,18 @@
   (handler-case
     (solve-tableau
       (build-tableau
-        (linear-programming/problem::make-problem
-                      :type (problem-type problem)
-                      :vars (problem-vars problem)
-                      :objective-var (problem-objective-var problem)
-                      :objective-func (problem-objective-func problem)
-                      :integer-vars (problem-integer-vars problem)
-                      :constraints (append extra-constraints
-                                           (problem-constraints problem)))))
+        (if (null extra-constraints)
+          problem
+          (linear-programming/problem::make-problem
+                        :type (problem-type problem)
+                        :vars (problem-vars problem)
+                        :objective-var (problem-objective-var problem)
+                        :objective-func (problem-objective-func problem)
+                        :integer-vars (problem-integer-vars problem)
+                        :constraints (append extra-constraints
+                                             (problem-constraints problem))))))
     (infeasible-problem-error () :infeasible)))
 
-;;;;;;;;;; End Branch and Bound ;;;;;;;;;;
 
 (defun form-solution (problem tableau)
   "Creates the solution object from a problem and a solved tableau"
@@ -148,6 +111,39 @@
                    :variables variables
                    :shadow-prices shadow-prices)))
 
+;;; Solver itself
+
+(defun solve-problem (problem)
+  "Solves the given linear problem"
+  (let ((current-best nil)
+        (current-solution nil)
+        (stack (list '()))
+        (comparator (if (eq (problem-type problem) 'max) '< '>)))
+    (iter (while stack)
+      (let* ((entry (pop stack))
+             (tab (build-and-solve problem entry)))
+           (cond
+             ; Reached an infeasible leaf.  Do nothing
+             ((eq tab :infeasible))
+
+             ; This branch can't contain the optimal solution.  Do nothing
+             ((and (violated-integer-constraint tab)
+                   current-best
+                   (not (funcall comparator current-best (tableau-objective-value tab)))))
+
+             ; Not integral, but not suboptimal.  Add children to stack
+             ((violated-integer-constraint tab)
+              (setf stack (append (gen-entries tab entry) stack)))
+
+             ; Integral.  If better than best, save this result.
+             ((or (not current-best)
+                  (funcall comparator current-best (tableau-objective-value tab)))
+              (setf current-best (tableau-objective-value tab)
+                    current-solution tab)))))
+    (form-solution problem current-solution)))
+
+
+;;; with-* methods
 
 (defmacro with-solved-problem ((objective-func &rest constraints) &body body)
   "Takes the problem description, and evaluates `body` with the variables of
