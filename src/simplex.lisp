@@ -36,7 +36,7 @@
   (var-count 0 :read-only t :type (integer 0 *))
   (constraint-count 0 :read-only t :type (integer 0 *)))
 
-(declaim (inline tableau-objective-value))
+(declaim (inline copy-tableau))
 (defun copy-tableau (tableau)
   "Copies the given tableau and it's matrix"
   (declare (optimize (speed 3)))
@@ -50,8 +50,8 @@
 (defun tableau-objective-value (tableau)
   "Gets the objective function value in the tableau"
   (aref (tableau-matrix tableau)
-        (tableau-var-count tableau)
-        (tableau-constraint-count tableau)))
+        (tableau-constraint-count tableau)
+        (tableau-var-count tableau)))
 
 
 (defun build-tableau (problem)
@@ -62,7 +62,7 @@
          (num-slack (count-if-not (curry #'eq '=) (problem-constraints problem) :key #'first))
          (vars (problem-vars problem))
          (num-vars (length vars))
-         (matrix (make-array (list (+ num-vars num-slack 1) (1+ num-constraints))
+         (matrix (make-array (list (1+ num-constraints) (+ num-vars num-slack 1))
                             :element-type 'real
                             :initial-element 0))
          (basis-columns (make-array (list num-constraints) :element-type `(integer 0 ,(+ num-vars num-slack 1))))
@@ -74,25 +74,25 @@
       (iter (for col from 0 below num-vars)
             (for var = (aref vars col))
         (when-let (value (cdr (assoc var (second constraint))))
-          (setf (aref matrix col row) value)))
+          (setf (aref matrix row col) value)))
       ;slack
       (case (first constraint)
-        (<= (setf (aref matrix (+ num-vars row) row) 1
+        (<= (setf (aref matrix row (+ num-vars row)) 1
                   (aref basis-columns row) (+ num-vars row)))
         (>= (push row artificial-var-rows)
-            (setf (aref matrix (+ num-vars row) row) -1
+            (setf (aref matrix row (+ num-vars row)) -1
                   (aref basis-columns row) (+ num-vars num-slack)))
         (= (push row artificial-var-rows)
            (setf (aref basis-columns row) (+ num-vars num-slack)))
         (t (error 'parsing-error
                   :description (format nil "~S is not a valid constraint equation" constraint))))
       ;rhs
-      (setf (aref matrix (+ num-vars num-slack) row) (third constraint)))
+      (setf (aref matrix row (+ num-vars num-slack)) (third constraint)))
     ;objective row
     (iter (for col from 0 below num-vars)
           (for var = (aref vars col))
       (when-let (value (cdr (assoc var (problem-objective-func problem))))
-        (setf (aref matrix col num-constraints) (- value))))
+        (setf (aref matrix num-constraints col) (- value))))
     (let ((main-tableau (make-tableau :problem problem
                                       :matrix matrix
                                       :basis-columns basis-columns
@@ -100,7 +100,7 @@
                                       :constraint-count num-constraints))
           (art-tableau (when artificial-var-rows
                          (let* ((num-art (length artificial-var-rows))
-                                (art-matrix (make-array (list (+ num-vars num-slack num-art 1) (1+ num-constraints))
+                                (art-matrix (make-array (list (1+ num-constraints) (+ num-vars num-slack num-art 1))
                                                         :element-type 'real
                                                         :initial-element 0))
                                 (art-basis-columns (copy-array basis-columns)))
@@ -108,23 +108,23 @@
                                  (for i from 0)
                              (setf (aref art-basis-columns row)
                                    (+ num-vars num-slack i))
-                             (setf (aref art-matrix (+ num-vars num-slack i) row) 1))
+                             (setf (aref art-matrix row (+ num-vars num-slack i)) 1))
 
                            ;copy coefficients
                            (iter (for c from 0 below (+ num-vars num-slack))
-                             (setf (aref art-matrix c num-constraints)
+                             (setf (aref art-matrix num-constraints c)
                                    (iter (for r from 0 below num-constraints)
-                                      (setf (aref art-matrix c r) (aref matrix c r))
+                                      (setf (aref art-matrix r c) (aref matrix r c))
                                       (when (member r artificial-var-rows)
-                                        (sum (aref art-matrix c r))))))
+                                        (sum (aref art-matrix r c))))))
                            ;copy rhs
                            (let ((c (+ num-vars num-slack num-art)))
-                             (setf (aref art-matrix c num-constraints)
+                             (setf (aref art-matrix num-constraints c)
                                    (iter (for r from 0 below num-constraints)
-                                     (setf (aref art-matrix c r)
-                                           (aref matrix (+ num-vars num-slack) r))
+                                     (setf (aref art-matrix r c)
+                                           (aref matrix r (+ num-vars num-slack)))
                                      (when (member r artificial-var-rows)
-                                       (sum (aref art-matrix c r))))))
+                                       (sum (aref art-matrix r c))))))
                            (make-tableau :problem (linear-programming/problem::make-problem
                                                                 :type 'min ;artificial problem
                                                                 :vars (problem-vars problem))
@@ -145,16 +145,16 @@
   "Destructively applies a single pivot to the table."
   (declare (type unsigned-byte entering-col changing-row))
   (let* ((matrix (tableau-matrix tableau))
-         (col-count (array-dimension matrix 0))
-         (row-count (array-dimension matrix 1)))
-    (let ((row-scale (aref matrix entering-col changing-row)))
+         (row-count (array-dimension matrix 0))
+         (col-count (array-dimension matrix 1)))
+    (let ((row-scale (aref matrix changing-row entering-col)))
       (iter (for c from 0 below col-count)
-        (setf (aref matrix c changing-row) (/ (aref matrix c changing-row) row-scale))))
+        (setf (aref matrix changing-row  c) (/ (aref matrix changing-row c) row-scale))))
     (iter (for r from 0 below row-count)
       (unless (= r changing-row)
-        (let ((scale (aref matrix entering-col r)))
+        (let ((scale (aref matrix r entering-col)))
           (iter (for c from 0 below col-count)
-            (decf (aref matrix c r) (* scale (aref matrix c changing-row))))))))
+            (decf (aref matrix r c) (* scale (aref matrix changing-row c))))))))
   (setf (aref (tableau-basis-columns tableau) changing-row) entering-col)
   tableau)
 
@@ -164,16 +164,16 @@
   (let ((num-constraints (tableau-constraint-count tableau)))
     (if (eq 'max (problem-type (tableau-problem tableau)))
       (iter (for i from 0 below (tableau-var-count tableau))
-        (finding i minimizing (aref (tableau-matrix tableau) i num-constraints)
+        (finding i minimizing (aref (tableau-matrix tableau) num-constraints i)
                   into col)
         (finally
-          (return (when (< (aref (tableau-matrix tableau) col num-constraints) 0)
+          (return (when (< (aref (tableau-matrix tableau) num-constraints col) 0)
                     col))))
       (iter (for i from 0 below (tableau-var-count tableau))
-        (finding i maximizing (aref (tableau-matrix tableau) i num-constraints)
+        (finding i maximizing (aref (tableau-matrix tableau) num-constraints i)
                    into col)
         (finally
-          (return (when (> (aref (tableau-matrix tableau) col num-constraints) 0)
+          (return (when (> (aref (tableau-matrix tableau) num-constraints col) 0)
                     col)))))))
 
 (declaim (inline find-pivoting-row))
@@ -181,9 +181,9 @@
   "Gets the column that will leave the basis"
   (let ((matrix (tableau-matrix tableau)))
     (iter (for i from 0 below (tableau-constraint-count tableau))
-      (when (< 0 (aref matrix entering-col i))
-        (finding i minimizing (/ (aref matrix (tableau-var-count tableau) i)
-                                 (aref matrix entering-col i)))))))
+      (when (< 0 (aref matrix i entering-col))
+        (finding i minimizing (/ (aref matrix i (tableau-var-count tableau))
+                                 (aref matrix i entering-col)))))))
 
 (defun solve-tableau (tableau)
   "Attempts to solve the tableau using the simplex method.  If a list of two
@@ -211,19 +211,19 @@
          ; Copy tableau coefficients/RHS
          (iter (for row from 0 below num-constraints)
            (iter (for col from 0 below num-vars)
-             (setf (aref main-matrix col row) (aref art-matrix col row)))
-           (setf (aref main-matrix num-vars row)
-                 (aref art-matrix (tableau-var-count solved-art-tab) row)))
+             (setf (aref main-matrix row col) (aref art-matrix row col)))
+           (setf (aref main-matrix row num-vars)
+                 (aref art-matrix row (tableau-var-count solved-art-tab))))
 
          ; Update basis columns and objective row to match
          (iter (for basis-col in-vector (tableau-basis-columns solved-art-tab))
                (for i from 0)
            (setf (aref (tableau-basis-columns main-tab) i) basis-col)
-           (let ((scale (aref main-matrix basis-col num-constraints)))
+           (let ((scale (aref main-matrix num-constraints basis-col)))
              (when (/= 0 scale)
                (iter (for col from 0 to num-vars)
-                 (decf (aref main-matrix col num-constraints)
-                       (* scale (aref main-matrix col i))))))))
+                 (decf (aref main-matrix num-constraints col)
+                       (* scale (aref main-matrix i col))))))))
        (n-solve-tableau main-tab)))
     ((tableau-p tableau)
      (iter (for entering-column = (find-entering-column tableau))
@@ -246,8 +246,7 @@
         (cond
           ((null var-id) (error "~S is not a variable in the tableau" var))
           (idx (aref (tableau-matrix tableau)
-                     (tableau-var-count tableau)
-                     idx))
+                     idx (tableau-var-count tableau)))
           (t 0))))))
 
 
@@ -256,7 +255,7 @@
   "Gets the shadow price for the given variable from the tableau"
   (if-let (idx (position var (problem-vars (tableau-problem tableau))))
     (aref (tableau-matrix tableau)
-          idx (tableau-constraint-count tableau))
+          (tableau-constraint-count tableau) idx)
     (error "~S is not a variable in the tableau" var)))
 
 
@@ -273,7 +272,7 @@
                ,@(iter (for var in-vector vars)
                        (for i from 0)
                    (collect `(,var (if-let (idx (position ,i (tableau-basis-columns ,tableau)))
-                                       (aref (tableau-matrix ,tableau) ,num-vars idx)
+                                       (aref (tableau-matrix ,tableau) idx ,num-vars)
                                        0)))))
            (declare (ignorable ,(problem-objective-var problem) ,@(map 'list #'identity vars)))
            ,@body))
