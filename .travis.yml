@@ -38,7 +38,7 @@ install:
   - if [ "$LISP" == "ccl-bin" ]; then git clone https://gitlab.common-lisp.net/asdf/asdf.git ~/common-lisp; fi
 
 script:
-  - run-fiveam -e t linear-programming-test:linear-programming
+  - run-fiveam -e t -l linear-programming-test linear-programming-test:linear-programming
 
 before_deploy:
   - roswell/generate-docs.ros
