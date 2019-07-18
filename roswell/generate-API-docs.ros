@@ -1,0 +1,31 @@
+#!/bin/sh
+#|-*- mode:lisp -*-|#
+#|
+exec ros -Q -- $0 "$@"
+|#
+
+(ql:quickload '(:linear-programming :doc-site-generator))
+(use-package :doc-gen)
+
+(defun main (&rest argv)
+  (declare (ignore argv))
+
+  (with-open-file (stream "docs-bin/API.md"
+                   :direction :output
+                   :external-format :utf-8)
+
+    (format stream "---~%~
+                    layout: page~%~
+                    title: API Documentation~%~
+                    meta-description: The API Documentation for the ~
+                    linear-programming Common Lisp library.~%~
+                    ---~%~%~%")
+
+
+    (print-documentation 'package 'linear-programming stream)
+
+    (print-package-documentation 'linear-programming/problem stream)
+    (print-package-documentation 'linear-programming/solver stream)
+    (print-package-documentation 'linear-programming/conditions stream)
+    (print-package-documentation 'linear-programming/simplex stream)
+    (print-package-documentation 'linear-programming/expressions stream)))

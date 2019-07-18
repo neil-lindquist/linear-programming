@@ -33,6 +33,7 @@ cache:
 install:
   - curl -L https://raw.githubusercontent.com/roswell/roswell/release/scripts/install-for-ci.sh | sh
   - ros install neil-lindquist/ci-utils
+  - ros install neil-lindquist/doc-site-generator
   # CCL's default asdf is slightly too old, so need to use a newer version
   - mkdir -p ~/common-lisp
   - if [ "$LISP" == "ccl-bin" ]; then git clone https://gitlab.common-lisp.net/asdf/asdf.git ~/common-lisp; fi
@@ -41,7 +42,9 @@ script:
   - run-fiveam -e t -l linear-programming-test linear-programming-test:linear-programming
 
 before_deploy:
-  - roswell/generate-docs.ros
+  - copy-site-base docs docs-bin
+  - echo "The documentation page for the linear-programming Common Lisp library." | make-gh-page README.md docs-bin/index.md
+  - roswell/generate-API-docs.ros
 
 deploy:
   provider: pages
