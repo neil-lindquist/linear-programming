@@ -29,8 +29,9 @@ See [neil-lindquist.github.io/linear-programming/](https://neil-lindquist.github
 Consider the following linear programming problem.
 > maximize  x + 4y + 3z  
 > such that  
-> * 2x + y <= 8  
-> * y + z <= 7
+> * 2x + y &#x2264; 8  
+> * y + z &#x2264; 7
+> * x, y, z &#x2265; 0
 
 First, the problem needs to be specified.
 Problems are specified with a simple DSL, as described in the [syntax reference](https://neil-lindquist.github.io/linear-programming/linear-problem-syntax).
