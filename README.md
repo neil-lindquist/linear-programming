@@ -12,13 +12,11 @@
 This is a Common Lisp library for solving linear programming problems.
 It is implemented in pure Common Lisp, instead of calling a high performance library.
 This has the advantage of being dependent on only a couple community standard libraries (ASDF, Alexandria, Iterate).
-However, it limits the performance of solving larger problems.
-If there is interest in a high performance backend, let me know; it shouldn't be hard to make the backend replaceable.
+However, this limits the performance of solving larger problems.
+If there is interest in a high performance backend, let me know; it shouldn't be hard to make the backend modular.
 
 ## Installation
-The linear-programming library is not yet in the main Quicklisp distribution, just Ultralisp.
-The Ultralisp dist can be added by running `(ql-dist:install-dist "http://dist.ultralisp.org/" :prompt nil)`.
-Then, this library can be loaded with `(ql:quickload :linear-programming)`.
+The linear-programming library is avalible in both the main Quicklisp distribution and Ultralisp, so it can loaded with with `(ql:quickload :linear-programming)`.
 You can check that it works by running `(asdf:test-system :linear-programming)`.
 
 If you are not using Quicklisp, place this repository, Alexandria, and Iterate somewhere where ASDF can find them.
