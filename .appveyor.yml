@@ -3,8 +3,6 @@ image: Visual Studio 2017
 platform:
     - x64
 
-clone_folder: C:\Users\appveyor\.roswell\local-projects\linear-programming\
-
 environment:
   BIT: 64
   COMPILER: msys2
@@ -12,7 +10,7 @@ environment:
   MSYS2_ARCH: x86_64
   MSYS2_DIR: msys64
   MSYSTEM: MINGW64
-  PATH: c:\msys64\usr\bin;c:\msys64\mingw64\bin;%USERPROFILE%\roswell;%PATH%
+  PATH: c:\msys64\usr\bin;c:\msys64\mingw64\bin;%USERPROFILE%\roswell;%USERPROFILE%\.roswell\bin;%PATH%
   PLATFORM: x64
   matrix:
     - LISP: sbcl-bin
@@ -24,8 +22,9 @@ install:
   - ros install %LISP%
   - ros install neil-lindquist/ci-utils
   - ros config
+  - bash -lc "asdf-register-project"  #Add the build directory to asdf's source registry
 
 build: off
 
 test_script:
-  - ros exec run-fiveam.ros -e t linear-programming-tests:linear-programming
+  - bash -lc "run-fiveam -e t -l linear-programming-test linear-programming-test:linear-programming"
