@@ -12,7 +12,7 @@ Note that currently, all variables are assumed to be non-negative, so, signed va
 + *constraint* &#x2192; *inequality-constraint* \| *integer-constraint*  
 + *inequality-constraint* &#x2192; (<=\|<\|>=\|>\|= *linear-expression*\*)  
 + *integer-constraint* &#x2192; (integer *var*\*) \| (binary *var*\*)  
-+ *linear-expression* &#x2192; *var* \| *number* \| (\+\|\-\|\*\|/ *linear-expression*\*)
++ *linear-expression* &#x2192; *var* \| *number* \| (\+\|\-\|\*\|/ *linear-expression*\*) \| (:alist (*var* . *number*)\*) \| (:plist {*var* *number*}\*)
 
 
 ### Example

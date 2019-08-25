@@ -4,7 +4,8 @@
         :iterate
         :linear-programming/conditions)
   (:import-from :alexandria
-                #:if-let)
+                #:if-let
+                #:plist-alist)
   (:export #:scale-linear-expression
            #:sum-linear-expressions
            #:parse-linear-expression
@@ -51,6 +52,12 @@
     ((not (listp expr))
      (error 'parsing-error
             :description (format nil "~S is not a symbol, number, or an expression" expr)))
+
+    ; low-level specifiers
+    ((eq (first expr) :alist)
+     (rest expr))
+    ((eq (first expr) :plist)
+     (plist-alist (rest expr)))
 
     ; arithmetic
     ((eq (first expr) '+)
