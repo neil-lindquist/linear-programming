@@ -1,7 +1,6 @@
 
 (uiop:define-package :linear-programming/problem
   (:use :cl
-         :alexandria
          :iterate
          :linear-programming/conditions
          :linear-programming/expressions)

@@ -1,11 +1,13 @@
 
 (uiop:define-package :linear-programming/solver
   (:use :cl
-        :alexandria
         :iterate
         :linear-programming/conditions
         :linear-programming/problem
         :linear-programming/simplex)
+  (:import-from :alexandria
+                #:once-only
+                #:with-gensyms)
   (:export #:solve-problem
 
            #:solution

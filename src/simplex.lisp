@@ -1,10 +1,15 @@
 
 (uiop:define-package :linear-programming/simplex
   (:use :cl
-        :alexandria
         :iterate
         :linear-programming/conditions
         :linear-programming/problem)
+  (:import-from :alexandria
+                #:curry
+                #:if-let
+                #:when-let
+                #:copy-array
+                #:once-only)
   (:export #:tableau
            #:tableau-p
            #:copy-tableau

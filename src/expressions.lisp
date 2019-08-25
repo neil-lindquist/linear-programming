@@ -1,9 +1,10 @@
 
 (uiop:define-package :linear-programming/expressions
   (:use :cl
-        :alexandria
         :iterate
         :linear-programming/conditions)
+  (:import-from :alexandria
+                #:if-let)
   (:export #:scale-linear-expression
            #:sum-linear-expressions
            #:parse-linear-expression
