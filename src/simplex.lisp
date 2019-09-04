@@ -43,7 +43,7 @@
 
 (declaim (inline copy-tableau))
 (defun copy-tableau (tableau)
-  "Copies the given tableau and it's matrix"
+  "Copies the given tableau and it's matrix."
   (declare (optimize (speed 3)))
   (make-tableau :problem (tableau-problem tableau)
                 :matrix (copy-array (tableau-matrix tableau))
@@ -53,16 +53,16 @@
 
 (declaim (inline tableau-objective-value))
 (defun tableau-objective-value (tableau)
-  "Gets the objective function value in the tableau"
+  "Gets the objective function value in the tableau."
   (aref (tableau-matrix tableau)
         (tableau-constraint-count tableau)
         (tableau-var-count tableau)))
 
 
 (defun build-tableau (problem)
-  "Creates the tableau from the given linear problem.  If the trivial basis is
-   not feasible, instead a list is returned containing the two tableaus for a
-   two-phase simplex method."
+  "Creates the tableau from the given linear problem.  If the trivial basis is not
+feasible, instead a list is returned containing the two tableaus for a two-phase
+simplex method."
   (let* ((num-constraints (length (problem-constraints problem)))
          (num-slack (count-if-not (curry #'eq '=) (problem-constraints problem) :key #'first))
          (vars (problem-vars problem))
@@ -165,7 +165,7 @@
 
 (declaim (inline find-entering-column))
 (defun find-entering-column (tableau)
-  "Gets the column to add to the basis"
+  "Gets the column to add to the basis."
   (let ((num-constraints (tableau-constraint-count tableau)))
     (if (eq 'max (problem-type (tableau-problem tableau)))
       (iter (for i from 0 below (tableau-var-count tableau))
@@ -183,7 +183,7 @@
 
 (declaim (inline find-pivoting-row))
 (defun find-pivoting-row (tableau entering-col)
-  "Gets the column that will leave the basis"
+  "Gets the column that will leave the basis."
   (let ((matrix (tableau-matrix tableau)))
     (iter (for i from 0 below (tableau-constraint-count tableau))
       (when (< 0 (aref matrix i entering-col))
@@ -191,16 +191,15 @@
                                  (aref matrix i entering-col)))))))
 
 (defun solve-tableau (tableau)
-  "Attempts to solve the tableau using the simplex method.  If a list of two
-   tableaus is given, then a two-phase version is used.
-   The original tableau is unchanged"
+  "Attempts to solve the tableau using the simplex method. If a list of two
+tableaus is given, then a two-phase version is used. The original tableau(s) are
+unchanged."
   (if (listp tableau)
     (n-solve-tableau (mapcar #'copy-tableau tableau))
     (n-solve-tableau (copy-tableau tableau))))
 
 (defun n-solve-tableau (tableau)
-  "A non-consing version of
-   [`solve-tableau`](#function-linear-programming/simplex:solve-tableau)."
+  "A non-consing version of [`solve-tableau`](#function-linear-programming/simplex:solve-tableau)."
   (cond
     ((listp tableau)
      (let ((solved-art-tab (n-solve-tableau (first tableau)))
@@ -266,8 +265,8 @@
 
 
 (defmacro with-tableau-variables (var-list tableau &body body)
-  "Evaluates the body with the variables in `var-list` bound to their values in
-   the tableau."
+  "Evaluates the body with the variables in `var-list` bound to their values from
+the tableau."
   (once-only (tableau)
     (if (typep var-list 'problem)
       (let* ((problem var-list) ;alias for readability

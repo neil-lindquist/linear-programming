@@ -16,13 +16,13 @@
 (in-package :linear-programming/expressions)
 
 (defun linear-constant-p (expr)
-  "A predicate for whether a linear expression is constant"
+  "A predicate for whether a linear expression is constant."
   (and (= 1 (length expr))
        (eq (car (first expr)) '+constant+)))
 
 (declaim (inline sum-linear-expressions))
 (defun sum-linear-expressions (&rest exprs)
-  "Takes a list of linear expressions and reduces it into a single expression"
+  "Takes a list of linear expressions and reduces it into a single expression."
   (reduce #'(lambda (collected next)
               (if-let (pair (assoc (car next) collected))
                 (progn
@@ -34,14 +34,14 @@
 
 (declaim (inline scale-linear-expression))
 (defun scale-linear-expression (expr scalar)
-  "Multiplies the linear expression by the given scalar"
+  "Multiplies the linear expression by the given scalar."
   (mapcar #'(lambda (x) (cons (car x) (* scalar (cdr x))))
           expr))
 
 
 (defun parse-linear-expression (expr)
-  "Parses the expression into a alist mapping variables to coefficients.
-   Any constant values are mapped to `+constant+`"
+  "Parses the expression into a alist mapping variables to coefficients. Any
+constant values are mapped to `+constant+`."
   (cond
     ; atoms
     ((symbolp expr)
@@ -105,7 +105,7 @@
 
 
 (defun format-linear-expression (alist)
-  "Formats a linear expression as a sexp"
+  "Formats a linear expression as a sexp."
   (cons '+
        (mapcar (lambda (pair)
                  (if (eq (car pair) '+constant+)

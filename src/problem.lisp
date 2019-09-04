@@ -50,8 +50,8 @@
 
 (declaim (inline simple-eq))
 (defun simple-eq (op exp1 exp2)
-  "Takes the rhs and lhs of an in/equality and moves any constant to the rhs
-   as a number and any non-constant values to the lhs as a linear expression."
+  "Takes the rhs and lhs of an in/equality and moves any constant to the rhs as a
+number and any non-constant values to the lhs as a linear expression."
   (let* ((lin-exp (sum-linear-expressions
                       exp1 (scale-linear-expression exp2 -1)))
          (const (cdr (assoc '+constant+ lin-exp :test 'eq)))
@@ -65,7 +65,7 @@
 
 (defun parse-linear-constraints (exprs)
   "Parses the list of constraints and returns a list containing a list of simple
-   inequalities and a list of integer variables"
+inequalities and a list of integer variables."
   (iter (for expr in exprs)
     (case (first expr)
       ((<= <)
