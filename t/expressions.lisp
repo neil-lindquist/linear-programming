@@ -63,3 +63,8 @@
   (signals nonlinear-error (parse-linear-expression '(/ x y)))
   (signals parsing-error (parse-linear-expression '"x + y"))
   (signals nonlinear-error (parse-linear-expression '(log 3))))
+
+
+(test format-linear-expression
+  (is (equal '(+ (* 5 x) (* 2 y) 5)
+             (format-linear-expression '((x . 5) (y . 2) (+constant+ . 5))))))

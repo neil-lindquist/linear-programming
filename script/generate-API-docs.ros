@@ -26,6 +26,7 @@ exec ros -Q -- $0 "$@"
 
     (print-package-documentation 'linear-programming/problem stream)
     (print-package-documentation 'linear-programming/solver stream)
+    (print-package-documentation 'linear-programming/external-formats stream)
     (print-package-documentation 'linear-programming/conditions stream)
     (print-package-documentation 'linear-programming/simplex stream)
     (print-package-documentation 'linear-programming/expressions stream)))

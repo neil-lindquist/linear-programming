@@ -9,6 +9,7 @@
   (:export #:scale-linear-expression
            #:sum-linear-expressions
            #:parse-linear-expression
+           #:format-linear-expression
            #:+constant+)
   (:documentation "Contains functions for processing linear expressions."))
 
@@ -101,3 +102,13 @@
        (scale-linear-expression dividend (/ (reduce #'* divisors :key #'cdar)))))
 
     (t (error 'nonlinear-error :expression expr))))
+
+
+(defun format-linear-expression (alist)
+  "Formats a linear expression as a sexp"
+  (cons '+
+       (mapcar (lambda (pair)
+                 (if (eq (car pair) '+constant+)
+                   (cdr pair)
+                   (list '* (cdr pair) (car pair))))
+               alist)))

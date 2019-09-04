@@ -6,5 +6,6 @@
                  :linear-programming-test/problem
                  :linear-programming-test/simplex
                  :linear-programming-test/solver
+                 :linear-programming-test/external-formats
 
                  :linear-programming-test/integration))
