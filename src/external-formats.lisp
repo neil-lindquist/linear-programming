@@ -15,10 +15,11 @@
 (defun read-sexp (stream &key allow-read-eval package)
   "Loads a problem stored in sexp format.  This is a single sexp with the first
    element being the objective function and the rest of the elements being the
-   constraints.  Note that normally `*READ-EVAL*` is bound to `NIL`, but can be
-   enabled with `ALLOW-READ_EVAL`; however, this should only be done when
+   constraints.  Note that normally `*read-eval*` is bound to `nil`, but can be
+   enabled with `allow-read-eval`; however, this should only be done when
    parsing trusted data.
-   See `WRITE-SEXP`"
+
+   See `write-sexp`"
   (let* ((problem (with-standard-io-syntax
                     (let ((*read-eval* allow-read-eval)
                           (*package* (or (find-package package) *package*)))
@@ -27,8 +28,9 @@
 
 (defun write-sexp (stream problem &key package)
   "Writes the problem as a sexp.  The first element is the objective function
-   and the rest of the elements are the constraints
-   See `LOAD-SEXP`"
+   and the rest of the elements are the constraints.
+
+   See `load-sexp`"
   (let* ((objective-func (let ((objective `(,(problem-type problem)
                                             ,(format-linear-expression (problem-objective-func problem)))))
                            (if (symbol-package (problem-objective-var problem)) ; is non uninterned
