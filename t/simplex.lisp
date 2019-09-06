@@ -82,7 +82,8 @@
     (is (= 2 (length tableaus)))
     ; art-tableau
     (is-true (tableau-p art-tableau))
-    (is (eq 'min (problem-type (tableau-problem art-tableau))))
+    (is (eq problem (tableau-problem art-tableau)))
+    (is (eq 'min (problem-type (tableau-instance-problem art-tableau))))
     (is (= 6 (tableau-var-count art-tableau)))
     (is (= 3 (tableau-constraint-count art-tableau)))
     (is (tableau-matrix-equal #2A((2 1 0 1 0 0 8) (0 1 1 0 1 0 7) (2 1 1 0 0 1 8) (2 1 1 0 0 0 8))
@@ -93,6 +94,7 @@
     ; main-tableau
     (is-true (tableau-p main-tableau))
     (is (eq problem (tableau-problem main-tableau)))
+    (is (eq problem (tableau-instance-problem main-tableau)))
     (is (= 5 (tableau-var-count main-tableau)))
     (is (= 3 (tableau-constraint-count main-tableau)))
     (is (tableau-matrix-equal #2A((2 1 0 1 0 8) (0 1 1 0 1 7) (2 1 1 0 0 8) (-1 -4 -3 0 0 0))
@@ -111,7 +113,8 @@
     (is (= 2 (length tableaus)))
     ; art-tableau
     (is-true (tableau-p art-tableau))
-    (is (eq 'min (problem-type (tableau-problem art-tableau))))
+    (is (eq problem (tableau-problem art-tableau)))
+    (is (eq 'min (problem-type (tableau-instance-problem art-tableau))))
     (is (= 7 (tableau-var-count art-tableau)))
     (is (= 3 (tableau-constraint-count art-tableau)))
     (is (tableau-matrix-equal #2A((2 1 0 1 0 0 0 8) (0 1 1 0 1 0 0 7) (1 0 1 0 0 -1 1 1) (1 0 1 0 0 -1 0 1))
@@ -214,7 +217,8 @@
     (is (equal 3 (tableau-constraint-count tab2)))
 
     ; art-tableau
-    (is (eq 'min (problem-type (tableau-problem art-tab))))
+    (is (eq problem (tableau-problem art-tab)))
+    (is (eq 'min (problem-type (tableau-instance-problem art-tab))))
     (is (equal 6 (tableau-var-count art-tab)))
     (is (equal 3 (tableau-constraint-count art-tab)))
     (is (tableau-matrix-equal #2A((1 1/2 0 1/2 0 0 4) (0 1 0 1 1 -1 7) (0 0 1 -1 0 1 0) (0 0 0 0 0 -1 0))
@@ -244,7 +248,8 @@
     (is (eq main-tab (n-solve-tableau tableaus)))
 
     ; art-tableau
-    (is (eq 'min (problem-type (tableau-problem art-tab))))
+    (is (eq problem (tableau-problem art-tab)))
+    (is (eq 'min (problem-type (tableau-instance-problem art-tab))))
     (is (equal 7 (tableau-var-count art-tab)))
     (is (equal 3 (tableau-constraint-count art-tab)))
     (is (or (and (tableau-matrix-equal #2A((0 1 -2 1 0 2 -2 6) (0 1 1 0 1 0 0 7) (1 0 1 0 0 -1 1 1) (0 0 0 0 0 0 -1 0))
@@ -313,22 +318,6 @@
     (is (= 7 (tableau-variable tableau 'y)))
     (is (= 0 (tableau-variable tableau 'z)))
     (signals error (tableau-variable 'foo tableau))))
-
-(test with-tableau-variables
-  (let* ((problem (make-linear-problem (= w (max (+ x (* 4 y) (* 3 z))))
-                                       (<= (+ (* 2 x) y) 8)
-                                       (<= (+ y z) 7)))
-         (tableau (n-solve-tableau (build-tableau problem))))
-    (with-tableau-variables (x y z w) tableau
-      (is (= 57/2 w))
-      (is (= 1/2 x))
-      (is (= 7 y))
-      (is (= 0 z)))
-    (eval `(with-tableau-variables ,problem ,tableau
-             (is (= 57/2 w))
-             (is (= x 1/2))
-             (is (= y 7))
-             (is (= z 0))))))
 
 
 (test tableau-shadow-price

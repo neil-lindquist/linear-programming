@@ -5,9 +5,10 @@
                  :linear-programming/solver
                  :linear-programming/conditions
                  :linear-programming/external-formats)
-  (:documentation "The overall package for the linear programming library.
-                   It contains only the reexported symbols of
-                   [LINEAR-PROGRAMMING/PROBLEM](#package-linear-programming/problem),
-                   [LINEAR-PROGRAMMING/SOLVER](#package-linear-programming/solver),
-                   [LINEAR-PROGRAMMING/CONDITIONS](#package-linear-programming/conditions), and
-                   [LINEAR-PROGRAMMING/EXTERNAL-FORMATS](#package-linear-programming/external-formats)."))
+  (:import-from :linear-programming/simplex
+                #:simplex-solver)
+  (:export #:simplex-solver)
+  (:documentation "The overall package for the linear programming library. It contains only the
+reexported symbols of `linear-programming/problem`, `linear-programming/solver`,
+`linear-programming/conditioner`, and `linear-programming/external-formats`,
+plus `simplex-solver` from `linear-programming/simplex`."))
