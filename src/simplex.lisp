@@ -45,10 +45,9 @@ package should be used through the interface provided by the
   (problem nil :read-only t :type problem) ; the overall problem
   (instance-problem nil :read-only t :type problem) ; the problem for this specific tableau
   (matrix #2A() :read-only t :type (simple-array real 2))
-  (basis-columns #() :read-only t :type (or (simple-array fixnum (*))
-                                            (simple-array integer (*))))
-  (var-count 0 :read-only t :type (integer 0 *))
-  (constraint-count 0 :read-only t :type (integer 0 *)))
+  (basis-columns #() :read-only t :type (simple-array fixnum (*)))
+  (var-count 0 :read-only t :type (and fixnum unsigned-byte))
+  (constraint-count 0 :read-only t :type (and fixnum unsigned-byte)))
 
 (declaim (inline copy-tableau))
 (defun copy-tableau (tableau)
@@ -105,15 +104,16 @@ simplex method."
                             :element-type 'real
                             :initial-element 0))
          (basis-columns (make-array (list num-constraints)
-                                    :element-type (if (<= num-cols most-positive-fixnum)
-                                                    'fixnum
-                                                    'integer)))
+                                    :element-type 'fixnum))
          (artificial-var-rows nil))
     ; constraint rows
-    (iter (for row from 0 below num-constraints)
+    (iter (declare (iterate:declare-variables)
+                   (optimize (speed 3) (safety 0)))
+          (for (the fixnum row) from 0 below num-constraints)
           (for constraint in (problem-constraints instance-problem))
       ;variables
-      (iter (for col from 0 below num-vars)
+      (iter (declare (iterate:declare-variables))
+            (for (the fixnum col) from 0 below num-vars)
             (for var = (aref vars col))
         (when-let (value (cdr (assoc var (second constraint) :test #'eq)))
           (setf (aref matrix row col) value)))
@@ -129,11 +129,13 @@ simplex method."
         (t (error 'parsing-error
                   :description (format nil "~S is not a valid constraint equation" constraint))))
       ;rhs
-      (setf (aref matrix row (+ num-vars num-slack)) (third constraint)))
+      (setf (aref matrix row (+ num-vars num-slack)) (the real (third constraint))))
     ;objective row
-    (iter (for col from 0 below num-vars)
+    (iter (declare (iterate:declare-variables)
+                   (optimize (speed 3) (safety 0)))
+          (for (the fixnum col) from 0 below num-vars)
           (for var = (aref vars col))
-      (when-let (value (cdr (assoc var (problem-objective-func problem))))
+      (when-let (value (cdr (assoc var (problem-objective-func problem) :test #'eq)))
         (setf (aref matrix num-constraints col) (- value))))
     (let ((main-tableau (make-tableau :problem problem
                                       :instance-problem instance-problem
@@ -177,8 +179,8 @@ simplex method."
                                          :var-count (+ num-vars num-slack num-art)
                                          :constraint-count num-constraints)))))
       (if art-tableau
-        (list art-tableau main-tableau)
-        main-tableau))))
+       (list art-tableau main-tableau)
+       main-tableau))))
 
 
 ;;; Tableau solver
@@ -189,17 +191,22 @@ simplex method."
 
 (defun n-pivot-row (tableau entering-col changing-row)
   "Destructively applies a single pivot to the table."
-  (declare (type unsigned-byte entering-col changing-row))
+  (declare (type fixnum entering-col changing-row)
+           (optimize (speed 3)))
   (let* ((matrix (tableau-matrix tableau))
          (row-count (array-dimension matrix 0))
          (col-count (array-dimension matrix 1)))
     (let ((row-scale (aref matrix changing-row entering-col)))
-      (iter (for c from 0 below col-count)
+      (iter (declare (iterate:declare-variables))
+            (for (the fixnum c) from 0 below col-count)
         (setf (aref matrix changing-row  c) (/ (aref matrix changing-row c) row-scale))))
-    (iter (for r from 0 below row-count)
+    (iter (declare (iterate:declare-variables)
+                   (optimize (speed 3) (safety 0)))
+          (for (the fixnum r) from 0 below row-count)
       (unless (= r changing-row)
         (let ((scale (aref matrix r entering-col)))
-          (iter (for c from 0 below col-count)
+          (iter (declare (iterate:declare-variables))
+                (for (the fixnum c) from 0 below col-count)
             (decf (aref matrix r c) (* scale (aref matrix changing-row c))))))))
   (setf (aref (tableau-basis-columns tableau) changing-row) entering-col)
   tableau)
