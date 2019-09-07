@@ -45,7 +45,8 @@ package should be used through the interface provided by the
   (problem nil :read-only t :type problem) ; the overall problem
   (instance-problem nil :read-only t :type problem) ; the problem for this specific tableau
   (matrix #2A() :read-only t :type (simple-array real 2))
-  (basis-columns #() :read-only t :type (simple-array * (*)))
+  (basis-columns #() :read-only t :type (or (simple-array fixnum (*))
+                                            (simple-array integer (*))))
   (var-count 0 :read-only t :type (integer 0 *))
   (constraint-count 0 :read-only t :type (integer 0 *)))
 
@@ -99,10 +100,14 @@ simplex method."
          (num-slack (count-if-not (curry #'eq '=) (problem-constraints instance-problem) :key #'first))
          (vars (problem-vars problem))
          (num-vars (length vars))
-         (matrix (make-array (list (1+ num-constraints) (+ num-vars num-slack 1))
+         (num-cols (+ num-vars num-slack 1))
+         (matrix (make-array (list (1+ num-constraints) num-cols)
                             :element-type 'real
                             :initial-element 0))
-         (basis-columns (make-array (list num-constraints) :element-type `(integer 0 ,(+ num-vars num-slack 1))))
+         (basis-columns (make-array (list num-constraints)
+                                    :element-type (if (<= num-cols most-positive-fixnum)
+                                                    'fixnum
+                                                    'integer)))
          (artificial-var-rows nil))
     ; constraint rows
     (iter (for row from 0 below num-constraints)
@@ -110,7 +115,7 @@ simplex method."
       ;variables
       (iter (for col from 0 below num-vars)
             (for var = (aref vars col))
-        (when-let (value (cdr (assoc var (second constraint))))
+        (when-let (value (cdr (assoc var (second constraint) :test #'eq)))
           (setf (aref matrix row col) value)))
       ;slack
       (case (first constraint)

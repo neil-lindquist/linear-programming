@@ -35,7 +35,7 @@
 (defstruct problem
   "The representation of a linear programming problem."
   (type 'max :read-only t :type (member max min))
-  (vars #() :read-only t :type (vector symbol))
+  (vars #() :read-only t :type (simple-array symbol (*)))
   (objective-var '#:z :read-only t :type symbol)
   (objective-func nil :read-only t :type list)
   (integer-vars nil :read-only t :type list)
