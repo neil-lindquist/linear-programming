@@ -14,7 +14,7 @@ This is ment for internal use and may change at any time."))
 (define-constant +supported-floats+
   (let ((floats nil))
     ;; sbcl only supports single and double floats, so some branches are unused
-    #+sbcl (declare (sb-ext:muffle-conditions sb-ext:compiler-note))
+    #+sbcl (declare (sb-ext:muffle-conditions sb-ext:code-deletion-note))
     ;; types that don't have their own representation will get reported as a different type
     (when (eq (type-of 0l0) 'long-float)
       (push 'long-float floats))
