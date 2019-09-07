@@ -3,9 +3,11 @@
   (:use :cl
         :iterate
         :linear-programming/conditions
+        :linear-programming/system-info
         :linear-programming/problem)
   (:import-from :alexandria
                 #:curry
+                #:compose
                 #:if-let
                 #:when-let
                 #:copy-array
@@ -36,6 +38,34 @@ package should be used through the interface provided by the
 
 (in-package :linear-programming/simplex)
 
+;;; helper macro to allow specializing code for different real type's
+(defmacro specialize-tableau-matrix (m &body body)
+  "Takes a tableau ."
+    ;; if float arrays are specialized, use the array's type
+    ;; otherwise, fallback to testing the type of an arbitrary element
+  `(,@(if +float-array-specializable+
+       `(ecase (array-element-type ,m))
+       `(etypecase (aref ,m 0 0)))
+    ;; create specialized versions for the supported float types
+    ;; use rationals as a fallback
+    ,@(iter (for type in (append +supported-floats+ (list 'rational)))
+            (for key in (append +supported-floats+ (list 't)))
+        (collect `(,key
+                   (flet ((set-matrix-entry (i j val)
+                            (setf (aref ,m i j) (coerce val ',type)))
+                          (coerce-matrix-type (val)
+                            (coerce val ',type)))
+                     (declare (type (simple-array ,type 2) ,m)
+                              (inline set-matrix-entry coerce-matrix-type))
+                     ,@body))))))
+
+(declaim (inline specialization-type-of))
+(defun specialization-type-of (x)
+  "Gets the specialization type to use for `x`."
+  (or (when (rationalp x)
+        'rational)
+      (type-of x)))
+
 
 ;;; Tableau representation
 
@@ -44,7 +74,11 @@ package should be used through the interface provided by the
   ; note that two tableaus are stored, which may differ when solving integer problems
   (problem nil :read-only t :type problem) ; the overall problem
   (instance-problem nil :read-only t :type problem) ; the problem for this specific tableau
-  (matrix #2A() :read-only t :type (simple-array real 2))
+  (matrix #2A() :read-only t :type (or (simple-array rational 2)
+                                       (simple-array long-float 2)
+                                       (simple-array double-float 2)
+                                       (simple-array single-float 2)
+                                       (simple-array short-float 2)))
   (basis-columns #() :read-only t :type (simple-array fixnum (*)))
   (var-count 0 :read-only t :type (and fixnum unsigned-byte))
   (constraint-count 0 :read-only t :type (and fixnum unsigned-byte)))
@@ -100,87 +134,95 @@ simplex method."
          (vars (problem-vars problem))
          (num-vars (length vars))
          (num-cols (+ num-vars num-slack 1))
+         (real-type (float-contagion (reduce 'float-contagion (problem-objective-func problem)
+                                             :key (compose 'specialization-type-of #'cdr))
+                                     (reduce 'float-contagion (problem-constraints problem)
+                                             :key (lambda (constraint)
+                                                    (reduce 'float-contagion (second constraint)
+                                                            :key (compose 'specialization-type-of #'cdr))))))
          (matrix (make-array (list (1+ num-constraints) num-cols)
-                            :element-type 'real
+                            :element-type real-type
                             :initial-element 0))
          (basis-columns (make-array (list num-constraints)
                                     :element-type 'fixnum))
          (artificial-var-rows nil))
-    ; constraint rows
-    (iter (declare (iterate:declare-variables)
-                   (optimize (speed 3) (safety 0)))
-          (for (the fixnum row) from 0 below num-constraints)
-          (for constraint in (problem-constraints instance-problem))
-      ;variables
-      (iter (declare (iterate:declare-variables))
+    (specialize-tableau-matrix matrix
+      ; constraint rows
+      (iter (declare (iterate:declare-variables)
+                     (optimize (speed 3) (safety 0)))
+            (for (the fixnum row) from 0 below num-constraints)
+            (for constraint in (problem-constraints instance-problem))
+        ;variables
+        (iter (declare (iterate:declare-variables))
+              (for (the fixnum col) from 0 below num-vars)
+              (for var = (aref vars col))
+          (when-let (value (cdr (assoc var (second constraint) :test #'eq)))
+            (set-matrix-entry row col value)))
+        ;slack
+        (case (first constraint)
+          (<= (set-matrix-entry row (+ num-vars row) 1)
+              (setf (aref basis-columns row) (+ num-vars row)))
+          (>= (push row artificial-var-rows)
+              (set-matrix-entry row (+ num-vars row) -1)
+              (setf (aref basis-columns row) (+ num-vars num-slack)))
+          (= (push row artificial-var-rows)
+             (setf (aref basis-columns row) (+ num-vars num-slack)))
+          (t (error 'parsing-error
+                    :description (format nil "~S is not a valid constraint equation" constraint))))
+        ;rhs
+        (set-matrix-entry row (+ num-vars num-slack) (third constraint)))
+      ;objective row
+      (iter (declare (iterate:declare-variables)
+                     (optimize (speed 3) (safety 0)))
             (for (the fixnum col) from 0 below num-vars)
             (for var = (aref vars col))
-        (when-let (value (cdr (assoc var (second constraint) :test #'eq)))
-          (setf (aref matrix row col) value)))
-      ;slack
-      (case (first constraint)
-        (<= (setf (aref matrix row (+ num-vars row)) 1
-                  (aref basis-columns row) (+ num-vars row)))
-        (>= (push row artificial-var-rows)
-            (setf (aref matrix row (+ num-vars row)) -1
-                  (aref basis-columns row) (+ num-vars num-slack)))
-        (= (push row artificial-var-rows)
-           (setf (aref basis-columns row) (+ num-vars num-slack)))
-        (t (error 'parsing-error
-                  :description (format nil "~S is not a valid constraint equation" constraint))))
-      ;rhs
-      (setf (aref matrix row (+ num-vars num-slack)) (the real (third constraint))))
-    ;objective row
-    (iter (declare (iterate:declare-variables)
-                   (optimize (speed 3) (safety 0)))
-          (for (the fixnum col) from 0 below num-vars)
-          (for var = (aref vars col))
-      (when-let (value (cdr (assoc var (problem-objective-func problem) :test #'eq)))
-        (setf (aref matrix num-constraints col) (- value))))
-    (let ((main-tableau (make-tableau :problem problem
-                                      :instance-problem instance-problem
-                                      :matrix matrix
-                                      :basis-columns basis-columns
-                                      :var-count (+ num-vars num-slack)
-                                      :constraint-count num-constraints))
-          (art-tableau (when artificial-var-rows
-                         (let* ((num-art (length artificial-var-rows))
-                                (art-matrix (make-array (list (1+ num-constraints) (+ num-vars num-slack num-art 1))
-                                                        :element-type 'real
-                                                        :initial-element 0))
-                                (art-basis-columns (copy-array basis-columns)))
-                           (iter (for row in artificial-var-rows)
-                                 (for i from 0)
-                             (setf (aref art-basis-columns row)
-                                   (+ num-vars num-slack i))
-                             (setf (aref art-matrix row (+ num-vars num-slack i)) 1))
+        (when-let (value (cdr (assoc var (problem-objective-func problem) :test #'eq)))
+          (set-matrix-entry num-constraints col (- (coerce-matrix-type value)))))
+      (let ((main-tableau (make-tableau :problem problem
+                                        :instance-problem instance-problem
+                                        :matrix matrix
+                                        :basis-columns basis-columns
+                                        :var-count (+ num-vars num-slack)
+                                        :constraint-count num-constraints))
+            (art-tableau (when artificial-var-rows
+                           (let* ((num-art (length artificial-var-rows))
+                                  (art-matrix (make-array (list (1+ num-constraints) (+ num-vars num-slack num-art 1))
+                                                          :element-type real-type
+                                                          :initial-element 0))
+                                  (art-basis-columns (copy-array basis-columns)))
+                             (progn
+                               (iter (for row in artificial-var-rows)
+                                     (for i from 0)
+                                 (setf (aref art-basis-columns row)
+                                       (+ num-vars num-slack i))
+                                 (setf (aref art-matrix row (+ num-vars num-slack i)) 1))
 
-                           ;copy coefficients
-                           (iter (for c from 0 below (+ num-vars num-slack))
-                             (setf (aref art-matrix num-constraints c)
-                                   (iter (for r from 0 below num-constraints)
-                                      (setf (aref art-matrix r c) (aref matrix r c))
-                                      (when (member r artificial-var-rows)
-                                        (sum (aref art-matrix r c))))))
-                           ;copy rhs
-                           (let ((c (+ num-vars num-slack num-art)))
-                             (setf (aref art-matrix num-constraints c)
-                                   (iter (for r from 0 below num-constraints)
-                                     (setf (aref art-matrix r c)
-                                           (aref matrix r (+ num-vars num-slack)))
-                                     (when (member r artificial-var-rows)
-                                       (sum (aref art-matrix r c))))))
-                           (make-tableau :problem problem
-                                         :instance-problem (linear-programming/problem::make-problem
-                                                                         :type 'min ;artificial problem
-                                                                         :vars (problem-vars problem))
-                                         :matrix art-matrix
-                                         :basis-columns art-basis-columns
-                                         :var-count (+ num-vars num-slack num-art)
-                                         :constraint-count num-constraints)))))
-      (if art-tableau
-       (list art-tableau main-tableau)
-       main-tableau))))
+                               ;copy coefficients
+                               (iter (for c from 0 below (+ num-vars num-slack))
+                                 (setf (aref art-matrix num-constraints c)
+                                       (iter (for r from 0 below num-constraints)
+                                          (setf (aref art-matrix r c) (aref matrix r c))
+                                          (when (member r artificial-var-rows)
+                                            (sum (aref art-matrix r c))))))
+                               ;copy rhs
+                               (let ((c (+ num-vars num-slack num-art)))
+                                 (setf (aref art-matrix num-constraints c)
+                                       (iter (for r from 0 below num-constraints)
+                                         (setf (aref art-matrix r c)
+                                               (aref matrix r (+ num-vars num-slack)))
+                                         (when (member r artificial-var-rows)
+                                           (sum (aref art-matrix r c)))))))
+                             (make-tableau :problem problem
+                                           :instance-problem (linear-programming/problem::make-problem
+                                                                           :type 'min ;artificial problem
+                                                                           :vars (problem-vars problem))
+                                           :matrix art-matrix
+                                           :basis-columns art-basis-columns
+                                           :var-count (+ num-vars num-slack num-art)
+                                           :constraint-count num-constraints)))))
+        (if art-tableau
+         (list art-tableau main-tableau)
+         main-tableau)))))
 
 
 ;;; Tableau solver
