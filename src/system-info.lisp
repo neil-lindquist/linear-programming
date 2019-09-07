@@ -7,7 +7,8 @@
   (:export #:+supported-floats+
            #:+float-array-specializable+
            #:float-contagion)
-  (:documentation "Utilities for inspecting how certain implmenetation-dependant features behave."))
+  (:documentation "Utilities for inspecting how certain implmenetation-dependant features behave.
+This is ment for internal use and may change at any time."))
 (in-package :linear-programming/system-info)
 
 (define-constant +supported-floats+
