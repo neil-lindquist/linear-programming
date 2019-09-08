@@ -63,7 +63,8 @@ package should be used through the interface provided by the
                                 ;; sbcl provides notes that it can't optimize rational math
                                 ;; but there isn't anything we can do about it
                                 ,@(when (eq type 'rational)
-                                    #+sbcl '((sb-ext:muffle-conditions sb-ext:compiler-note))))
+                                    #+sbcl '((sb-ext:muffle-conditions sb-ext:compiler-note))
+                                    #-sbcl nil))
                        ,@body)))))))
 
 (declaim (inline specialization-type-of))
