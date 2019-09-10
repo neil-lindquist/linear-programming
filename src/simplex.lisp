@@ -22,6 +22,7 @@
            #:tableau-objective-value
            #:tableau-variable
            #:tableau-shadow-price
+           #:with-tableau-variables
 
            #:pivot-row
            #:n-pivot-row
@@ -89,6 +90,26 @@ package should be used through the interface provided by the
     (aref (tableau-matrix tableau)
           (tableau-constraint-count tableau) idx)
     (error "~S is not a variable in the tableau" var)))
+
+(defmacro with-tableau-variables (var-list tableau &body body)
+  "Evaluates the body with the variables in `var-list` bound to their values from
+the tableau."
+  (once-only (tableau)
+    (if (typep var-list 'problem)
+      (let* ((problem var-list) ;alias for readability
+             (vars (problem-vars problem))
+             (num-vars (+ (length vars) (length (problem-constraints problem)))))
+        `(let ((,(problem-objective-var problem) (tableau-objective-value ,tableau))
+               ,@(iter (for var in-vector vars)
+                       (for i from 0)
+                   (collect `(,var (if-let (idx (position ,i (tableau-basis-columns ,tableau)))
+                                       (aref (tableau-matrix ,tableau) idx ,num-vars)
+                                       0)))))
+           (declare (ignorable ,(problem-objective-var problem) ,@(map 'list #'identity vars)))
+           ,@body))
+      `(let (,@(iter (for var in-sequence var-list)
+                 (collect `(,var (tableau-variable ,tableau ',var)))))
+         ,@body))))
 
 
 (defun build-tableau (problem &optional (instance-problem problem))

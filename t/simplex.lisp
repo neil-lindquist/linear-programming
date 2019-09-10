@@ -330,3 +330,19 @@
     (is (= 0 (tableau-shadow-price tableau 'y)))
     (is (= 1/2 (tableau-shadow-price tableau 'z)))
     (signals error (tableau-shadow-price tableau 'foo))))
+
+(test with-tableau-variables
+  (let* ((problem (make-linear-problem (= w (max (+ x (* 4 y) (* 3 z))))
+                                       (<= (+ (* 2 x) y) 8)
+                                       (<= (+ y z) 7)))
+         (tableau (n-solve-tableau (build-tableau problem))))
+    (with-tableau-variables (x y z w) tableau
+      (is (= 57/2 w))
+      (is (= 1/2 x))
+      (is (= 7 y))
+      (is (= 0 z)))
+    (eval `(with-tableau-variables ,problem ,tableau
+             (is (= 57/2 w))
+             (is (= x 1/2))
+             (is (= y 7))
+             (is (= z 0))))))
