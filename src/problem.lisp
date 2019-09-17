@@ -6,6 +6,8 @@
          :linear-programming/expressions)
   (:import-from :alexandria
                 #:if-let)
+  (:import-from :linear-programming/utils
+                #:validate-bounds)
   (:export #:make-linear-problem
            #:parse-linear-problem
 
@@ -160,11 +162,7 @@ inequalities and a list of integer variables."
                                            ((null next-ub) match-ub)
                                            ((null match-ub) next-ub)
                                            (t (min match-lb next-lb)))))
-                                (when (and lb ub (< ub lb))
-                                   (error 'invalid-bounds-error
-                                          :var (first next)
-                                          :ub ub
-                                          :lb lb))
+                                (validate-bounds lb ub (first next))
                                 (setf (cdr match) (cons lb ub))
                                 result)
                               (list* next result)))

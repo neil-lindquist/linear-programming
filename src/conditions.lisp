@@ -1,6 +1,7 @@
 (uiop:define-package :linear-programming/conditions
   (:use :cl)
   (:export #:parsing-error
+           #:invalid-bounds-error
            #:solver-error
            #:unsupported-constraint-error
            #:infeasible-problem-error

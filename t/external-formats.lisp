@@ -23,7 +23,7 @@
 (test read-sexp
   (let ((problem (with-input-from-string (stream "((max (+ x (* 4 y) (* 8 z)))
                                                    (<= (+ x y) 8)
-                                                   (<= (+ y z) 7))")
+                                                   (<= (+ (* 2 y) z) 7))")
                    (read-sexp stream))))
     (is (typep problem 'problem))
     (is (eq 'max (problem-type problem)))
@@ -37,7 +37,7 @@
                    (problem-integer-vars problem)))
     (is (set-equal '()
                    (problem-var-bounds problem)))
-    (is (set-equal '((<= ((cl-user::x . 1) (cl-user::y . 1)) 8) (<= ((cl-user::y . 1) (cl-user::z . 1)) 7))
+    (is (set-equal '((<= ((cl-user::x . 1) (cl-user::y . 1)) 8) (<= ((cl-user::y . 2) (cl-user::z . 1)) 7))
                    (problem-constraints problem))))
 
   (let ((problem (with-input-from-string (stream "((max (+ x (* 4 y) (* 8 z)))
@@ -187,3 +187,27 @@
                    (problem-integer-vars parsed-problem)))
     (is (set-equal '((<= ((x . 1) (y . 1)) 8) (<= ((y . 1) (z . 1)) 7))
                    (problem-constraints parsed-problem)))))
+
+(test read-mps
+  (with-open-file (stream (merge-pathnames "t/data/simple-problem.mps"
+                                           (asdf:system-source-directory :linear-programming-test))
+                          :direction :input
+                          :external-format :utf-8)
+    (let ((problem (read-mps stream 'max)))
+      (is (typep problem 'problem))
+      (is (eq 'max (problem-type problem)))
+      (is (typep (problem-vars problem) 'vector))
+      (is-true (null (symbol-package (problem-objective-var problem))))
+      (is (set-equal '(x y z)
+                     (map 'list #'identity (problem-vars problem))))
+      (is (set-equal '((x . 1) (y . 4) (z . 8))
+                     (problem-objective-func problem)))
+      (is (set-equal '()
+                     (problem-integer-vars problem)))
+      (is (set-equal '()
+                     (problem-var-bounds problem)))
+      (is (set-equal '((<= ((x . 3) (y . 1)) 8) (<= ((y . 1) (z . 2)) 7))
+                     (problem-constraints problem)
+                     :test (lambda (a b) (and (eq (first a) (first b))
+                                              (set-equal (second a) (second b))
+                                              (= (third a) (third b)))))))))
