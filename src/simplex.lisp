@@ -116,6 +116,11 @@ the tableau."
   "Creates the tableau from the given linear problem.  If the trivial basis is not
 feasible, instead a list is returned containing the two tableaus for a two-phase
 simplex method."
+  (when (problem-free-vars problem)
+    (cerror "Add non-negativity constraint to problem"
+            'unsupported-constraint-error :constraint (list* 'free (problem-free-vars problem))
+                                          :solver-name "Simplex"))
+
   (let* ((num-constraints (length (problem-constraints instance-problem)))
          (num-slack (count-if-not (curry #'eq '=) (problem-constraints instance-problem) :key #'first))
          (vars (problem-vars problem))
@@ -331,6 +336,7 @@ that constraint."
                         :objective-var (problem-objective-var problem)
                         :objective-func (problem-objective-func problem)
                         :integer-vars (problem-integer-vars problem)
+                        ;; ignore free vars, must be nil for simplex
                         :constraints (append extra-constraints
                                              (problem-constraints problem))))))
     (infeasible-problem-error () :infeasible)))
@@ -339,6 +345,20 @@ that constraint."
 
 (defun simplex-solver (problem)
   "The solver interface function for the simplex backend."
+  (when (problem-free-vars problem)
+    (restart-case (error 'unsupported-constraint-error :constraint (list* 'free (problem-free-vars problem))
+                                                       :solver-name "Simplex")
+      (continue ()
+        :report "Add non-negativity constraint to problem"
+        (setf problem (linear-programming/problem::make-problem
+                          :type (problem-type problem)
+                          :vars (problem-vars problem)
+                          :objective-var (problem-objective-var problem)
+                          :objective-func (problem-objective-func problem)
+                          :integer-vars (problem-integer-vars problem)
+                          :free-vars nil
+                          :constraints (problem-constraints problem))))))
+
   (let ((current-best nil)
         (current-solution nil)
         (stack (list '()))

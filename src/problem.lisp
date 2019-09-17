@@ -13,6 +13,7 @@
            #:max
            #:integer
            #:binary
+           #:free
            #:<=
            #:>=
            #:<
@@ -27,6 +28,7 @@
            #:problem-objective-var
            #:problem-objective-func
            #:problem-integer-vars
+           #:problem-free-vars
            #:problem-constraints)
   (:documentation "Handles the representation of linear programming problems."))
 
@@ -39,6 +41,7 @@
   (objective-var '#:z :read-only t :type symbol)
   (objective-func nil :read-only t :type list)
   (integer-vars nil :read-only t :type list)
+  (free-vars nil :read-only t :type list)
   (constraints nil :read-only t :type list))
 
 (setf (documentation 'problem-type 'function) "Whether the problem is a `min` or `max` problem."
@@ -46,6 +49,7 @@
       (documentation 'problem-objective-var 'function) "The name of the objective function."
       (documentation 'problem-objective-func 'function) "The objective function as a linear expression alist."
       (documentation 'problem-integer-vars 'function) "A list of variables with integer constraints."
+      (documentation 'problem-free-vars 'function) "A list of variables that may be negative."
       (documentation 'problem-constraints 'function) "A list of (in)equality constraints.")
 
 (declaim (inline simple-eq))
@@ -80,6 +84,9 @@ inequalities and a list of integer variables."
       ((integer)
        (unioning (rest expr)
                  into integer))
+      ((free)
+       (unioning (rest expr)
+                 into free))
       ((binary)
        (unioning (rest expr)
                  into integer)
@@ -96,7 +103,7 @@ inequalities and a list of integer variables."
                                  (collect (simple-eq (first constraint)
                                                      (nth (1- i) constraint)
                                                      (nth i constraint))))))))
-        (return (list simple-eqs integer))))))
+        (return (list simple-eqs integer free))))))
 
 
 (defun parse-linear-problem (objective-exp constraints)
@@ -123,9 +130,11 @@ inequalities and a list of integer variables."
            (parsed-constraints (parse-linear-constraints constraints))
            (eq-constraints (first parsed-constraints))
            (integer-constraints (second parsed-constraints))
+           (free-constraints (third parsed-constraints))
            ;collect all of the variables referenced
            (var-list (remove-duplicates (mapcar #'car objective-func)))
            (var-list (union var-list integer-constraints))
+           (var-list (union var-list free-constraints))
            (var-list (union var-list
                             (reduce (lambda (l1 l2) (union l1 (mapcar #'car l2)))
                                     eq-constraints
@@ -139,6 +148,7 @@ inequalities and a list of integer variables."
                     :objective-var objective-var
                     :objective-func objective-func
                     :integer-vars integer-constraints
+                    :free-vars free-constraints
                     :constraints eq-constraints))))
 
 

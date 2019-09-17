@@ -55,7 +55,14 @@
                      :constraints '((<= ((x . 5) (y . 1)) 10)
                                     (<= ((x . 1) (y . 7)) 18)
                                     (/= ((x . 1) (y . 1)) 5)))))
-    (signals parsing-error (build-tableau problem)))
+    (signals parsing-error (build-tableau problem))
+
+
+    (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
+                                         (<= (+ (* 2 x) y) 8)
+                                         (<= (+ y z) 7)
+                                         (free y))))
+      (signals unsupported-constraint-error (build-tableau problem))))
 
 
   (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))

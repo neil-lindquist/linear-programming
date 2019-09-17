@@ -2,6 +2,7 @@
   (:use :cl)
   (:export #:parsing-error
            #:solver-error
+           #:unsupported-constraint-error
            #:infeasible-problem-error
            #:infeasible-integer-constraints-error
            #:unbounded-problem-error
@@ -50,3 +51,13 @@ is infinite."))
              (declare (ignore err))
              (format stream "Integer constrains could not be satisfied")))
   (:documentation "Indicates that there is no feasible region due to the integer constraints."))
+
+(define-condition unsupported-constraint-error (solver-error)
+  ((constraint :reader constraint
+               :initarg :constraint)
+   (solver-name :reader solver-name
+                :initarg :solver-name))
+  (:report (lambda (err stream)
+             (format stream "~S cannot be handled by the ~A solver"
+                            (constraint err) (solver-name err))))
+  (:documentation "Indicates there are unsupported constraints or properties in the given problem."))

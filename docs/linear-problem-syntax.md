@@ -6,12 +6,14 @@ meta-description: The specification of the Linear Programming Problem DSL
 
 To effectively describe linear programming problems, `parse-linear-problem` uses a basic DSL.
 A linear programming problem is described with an *optimization-function* form, followed by the *constraint* forms, both of which are described by the following grammar.
-Note that currently, all variables are assumed to be non-negative, so, signed variables must be represented by a difference of the positive and negative components, eg `var` would be replaced with `(- var+ var-)`.
+By default all variables are assumed to be non-negative, with signed variables needing to be marked in a `free` section.
+ However, the default solver does not supported signed variables, so they must be represented by a difference of the positive and negative components, eg `var` would be replaced with `(- var+ var-)`.
 
 + *objective-function* &#x2192; (min\|max *linear-expression*) \| (= *objective-variable* (min\|max *linear-expression*)) \| (min\|max (= *objective-variable* *linear-expression*))  
-+ *constraint* &#x2192; *inequality-constraint* \| *integer-constraint*  
++ *constraint* &#x2192; *inequality-constraint* \| *integer-constraint*  \| *free-variables*
 + *inequality-constraint* &#x2192; (<=\|<\|>=\|>\|= *linear-expression*\*)  
 + *integer-constraint* &#x2192; (integer *var*\*) \| (binary *var*\*)  
++ *free-variables* &#x2192; (free *var*\*)
 + *linear-expression* &#x2192; *var* \| *number* \| (\+\|\-\|\*\|/ *linear-expression*\*) \| (:alist (*var* . *number*)\*) \| (:plist {*var* *number*}\*)
 
 
