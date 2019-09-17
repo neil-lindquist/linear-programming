@@ -27,7 +27,7 @@ parsing trusted data."
   "Writes the problem as a sexp.  The first element is the objective function and
 the rest of the elements are the constraints."
   (let* ((objective-func (let ((objective `(,(problem-type problem)
-                                            ,(format-linear-expression (problem-objective-func problem)))))
+                                             ,(format-linear-expression (problem-objective-func problem)))))
                            (if (symbol-package (problem-objective-var problem)) ; is non uninterned
                              `(= ,(problem-objective-var problem) objective)
                              objective)))
@@ -36,9 +36,10 @@ the rest of the elements are the constraints."
                                           (format-linear-expression (second constraint))
                                           (third constraint)))))
          (int-vars (problem-integer-vars problem))
-         (constraints (if int-vars
-                        (cons (cons 'integer int-vars) eq-constraints)
-                        eq-constraints))
+         (free-vars (problem-free-vars problem))
+         (constraints (append (when int-vars (list (list* 'integer int-vars)))
+                              (when free-vars (list (list* 'free free-vars)))
+                              eq-constraints))
          (problem-sexp (cons objective-func constraints)))
     (with-standard-io-syntax
       (let ((*package* (or (find-package package) *package*)))
