@@ -327,16 +327,16 @@
     (signals error (tableau-variable 'foo tableau))))
 
 
-(test tableau-shadow-price
-  (declare (notinline tableau-shadow-price))
+(test tableau-reduced-cost
+  (declare (notinline tableau-reduced-cost))
   (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
                                        (<= (+ (* 2 x) y) 8)
                                        (<= (+ y z) 7)))
          (tableau (n-solve-tableau (build-tableau problem))))
-    (is (= 0 (tableau-shadow-price tableau 'x)))
-    (is (= 0 (tableau-shadow-price tableau 'y)))
-    (is (= 1/2 (tableau-shadow-price tableau 'z)))
-    (signals error (tableau-shadow-price tableau 'foo))))
+    (is (= 0 (tableau-reduced-cost tableau 'x)))
+    (is (= 0 (tableau-reduced-cost tableau 'y)))
+    (is (= 1/2 (tableau-reduced-cost tableau 'z)))
+    (signals error (tableau-reduced-cost tableau 'foo))))
 
 (test with-tableau-variables
   (let* ((problem (make-linear-problem (= w (max (+ x (* 4 y) (* 3 z))))

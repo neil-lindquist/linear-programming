@@ -21,7 +21,7 @@
            #:tableau-constraint-count
            #:tableau-objective-value
            #:tableau-variable
-           #:tableau-shadow-price
+           #:tableau-reduced-cost
            #:with-tableau-variables
 
            #:pivot-row
@@ -83,9 +83,10 @@ package should be used through the interface provided by the
           (t 0))))))
 
 
-(declaim (inline tableau-shadow-price))
-(defun tableau-shadow-price (tableau var)
-  "Gets the shadow price for the given variable from the tableau"
+(declaim (inline tableau-reduced-cost))
+(defun tableau-reduced-cost (tableau var)
+  "Gets the reduced cost (i.e. the shadow price for the lower bound) for the given
+variable from the tableau"
   (if-let (idx (position var (problem-vars (tableau-instance-problem tableau))))
     (aref (tableau-matrix tableau)
           (tableau-constraint-count tableau) idx)

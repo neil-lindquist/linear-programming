@@ -16,18 +16,18 @@
                 #:tableau-problem
                 #:tableau-objective-value
                 #:tableau-variable
-                #:tableau-shadow-price)
+                #:tableau-reduced-cost)
   (:export #:*solver*
            #:solve-problem
 
            #:solution-problem
            #:solution-objective-value
            #:solution-variable
-           #:solution-shadow-price
+           #:solution-reduced-cost
 
            #:with-solved-problem
            #:with-solution-variables
-           #:shadow-price)
+           #:reduced-cost)
   (:documentation "The high level linear programming solver interface. This interface is able to
 wrap multiple backends. The backend can be adjusted by setting the `*solver*`
 variable. The default backend is the `simplex-solver` in the
@@ -41,7 +41,7 @@ variable. The default backend is the `simplex-solver` in the
 problem, and any backend specific keyword arguments and returns some form of
 solution object. The solution object should support the following methods
 `solution-problem`, `solution-objective-value`, `solution-variable`, and
-`solution-shadow-price`.")
+`solution-reduced-cost`.")
 
 ;;; Solution object
 
@@ -52,32 +52,34 @@ arguments are passed to the solver function."
 
 ;; Note that the simplex implementations are here in order to avoid a circlar dependency
 (defgeneric solution-problem (solution)
-  (:documentation "Gets the original problem for the solution")
+  (:documentation "Gets the original problem for the solution.")
   (:method ((solution tableau))
     (tableau-problem solution)))
 
 (defgeneric solution-objective-value (solution)
-  (:documentation "Gets the value of the objective function")
+  (:documentation "Gets the value of the objective function.")
   (:method ((solution tableau))
     (tableau-objective-value solution)))
 
 (defgeneric solution-variable (solution variable)
-  (:documentation "Gets the value of the specified variable")
+  (:documentation "Gets the value of the specified variable.")
   (:method ((solution tableau) variable)
     (tableau-variable solution variable)))
 
-(defgeneric solution-shadow-price (solution variable)
-  (:documentation "Gets the shadow price of the specified variable")
+(defgeneric solution-reduced-cost (solution variable)
+  (:documentation "Gets the reduced cost (i.e. the shadow price for the lower bound) of the
+specified variable.")
   (:method ((solution tableau) variable)
-    (tableau-shadow-price solution variable)))
+    (tableau-reduced-cost solution variable)))
+
 
 
 ;;; with-* methods
 
 (defmacro with-solved-problem ((objective-func &rest constraints) &body body)
   "Takes the problem description, and evaluates `body` with the variables of the
-problem bound to their solution values. Additionally, the macro `shadow-price`
-is locally bound that takes a variable name and provides it's shadow price."
+problem bound to their solution values. Additionally, the macro `reduced-cost`
+is locally bound that takes a variable name and provides it's reduced cost."
   (let ((problem (parse-linear-problem objective-func constraints)))
     (with-gensyms (solution)
       `(let ((,solution (solve-problem ,problem)))
@@ -86,10 +88,11 @@ is locally bound that takes a variable name and provides it's shadow price."
 
 (defmacro with-solution-variables (var-list solution &body body)
   "Evaluates the body with the variables in `var-list` bound to their values in the
-solution."
+solution. Additionally, the macro `reduced-cost` is locally bound that takes a
+variable name and provides it's reduced cost."
   (once-only (solution)
-    (let ((body (list `(macrolet ((shadow-price (var)
-                                    `(solution-shadow-price ,',solution ',var)))
+    (let ((body (list `(macrolet ((reduced-cost (var)
+                                    `(solution-reduced-cost ,',solution ',var)))
                           ,@body))))
       (if (typep var-list 'problem)
         (let* ((problem var-list) ;alias for readability

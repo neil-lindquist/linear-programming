@@ -44,16 +44,16 @@
                     (float revenue)))
     (is (<= 45.36 widgets 45.37)
         (format nil "Computed ~A widgets, instead of 45.36-45.37" (float widgets)))
-    (is (= 0 (shadow-price widgets)))
+    (is (= 0 (reduced-cost widgets)))
     (is (<= 2.37 d1 2.38)
         (format nil "Computed ~A dept 1 runs, instead of 2.37-2.38" (float d1)))
-    (is (= 0 (shadow-price d1)))
+    (is (= 0 (reduced-cost d1)))
     (is (<= 6.96 d2 6.97)
         (format nil "Computed ~A dept 2 runs, instead of 6.96-6.97" (float d2)))
-    (is (= 0 (shadow-price d2)))
+    (is (= 0 (reduced-cost d2)))
     (is (<= 15.37 d3 15.38)
         (format nil "Computed ~A dept 3 runs, instead of 15.37-15.38" (float d3)))
-    (is (= 0 (shadow-price d3)))))
+    (is (= 0 (reduced-cost d3)))))
 
 
 (test excessive-constraints
@@ -64,4 +64,4 @@
                         (<= 0 (+ 134 (* 49 a)) (* 255 a))
                         (<= 0 a 1))
     (is (= 74/103 a))
-    (is (= 0 (shadow-price a)))))
+    (is (= 0 (reduced-cost a)))))

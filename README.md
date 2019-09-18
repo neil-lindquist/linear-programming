@@ -46,46 +46,46 @@ Once the problem is created, it can be solved with the simplex method.
 ```common-lisp
 (defvar solution (solve-problem problem))
 ```
-Finally, the optimal tableau can be inspected to get the resulting objective function, decision variables, and shadow prices.
+Finally, the optimal tableau can be inspected to get the resulting objective function, decision variables, and reduced-costs (i.e. the shadow prices for the variable's lower bounds).
 ```common-lisp
 (format t "Objective value solution: ~A~%" (solution-variable solution 'w))
-(format t "x = ~A (shadow price: ~A)~%" (solution-variable solution 'x) (solution-shadow-price solution 'x))
-(format t "y = ~A (shadow price: ~A)~%" (solution-variable solution 'y) (solution-shadow-price solution 'y))
-(format t "z = ~A (shadow price: ~A)~%" (solution-variable solution 'z) (solution-shadow-price solution 'z))
+(format t "x = ~A (reduced cost: ~A)~%" (solution-variable solution 'x) (solution-reduced-cost solution 'x))
+(format t "y = ~A (reduced cost: ~A)~%" (solution-variable solution 'y) (solution-reduced-cost solution 'y))
+(format t "z = ~A (reduced cost: ~A)~%" (solution-variable solution 'z) (solution-reduced-cost solution 'z))
 
 ;; ==>
 ;; Objective value solution: 57/2
-;; x = 1/2 (shadow price: 0)
-;; y = 7 (shadow price: 0)
-;; z = 0 (shadow price: 1/2)
+;; x = 1/2 (reduced cost: 0)
+;; y = 7 (reduced cost: 0)
+;; z = 0 (reduced cost: 1/2)
 ```
 Alternatively, the `with-solution-variables` and `with-solved-problem` macros simplify some steps and binds the solution variables in their bodies.
 
 ```common-lisp
 (with-solution-variables (w x y z) solution
   (format t "Objective value solution: ~A~%" w)
-  (format t "x = ~A (shadow price: ~A)~%" x (shadow-price solution 'x))
-  (format t "y = ~A (shadow price: ~A)~%" y (shadow-price solution 'y))
-  (format t "z = ~A (shadow price: ~A)~%" z (shadow-price solution 'z)))
+  (format t "x = ~A (reduced cost: ~A)~%" x (reduced-cost solution 'x))
+  (format t "y = ~A (reduced cost: ~A)~%" y (reduced-cost solution 'y))
+  (format t "z = ~A (reduced cost: ~A)~%" z (reduced-cost solution 'z)))
 
 ;; ==>
 ;; Objective value solution: 57/2
-;; x = 1/2 (shadow price: 0)
-;; y = 7 (shadow price: 0)
-;; z = 0 (shadow price: 1/2)
+;; x = 1/2 (reduced cost: 0)
+;; y = 7 (reduced cost: 0)
+;; z = 0 (reduced cost: 1/2)
 
 
 (with-solved-problem ((max (= w (+ x (* 4 y) (* 3 z))))
                       (<= (+ (* 2 x) y) 8)
                       (<= (+ y z) 7))
   (format t "Objective value solution: ~A~%" w)
-  (format t "x = ~A (shadow price: ~A)~%" x (shadow-price solution 'x))
-  (format t "y = ~A (shadow price: ~A)~%" y (shadow-price solution 'y))
-  (format t "z = ~A (shadow price: ~A)~%" z (shadow-price solution 'z)))
+  (format t "x = ~A (reduced cost: ~A)~%" x (reduced-cost solution 'x))
+  (format t "y = ~A (reduced cost: ~A)~%" y (reduced-cost solution 'y))
+  (format t "z = ~A (reduced cost: ~A)~%" z (reduced-cost solution 'z)))
 
 ;; ==>
 ;; Objective value solution: 57/2
-;; x = 1/2 (shadow price: 0)
-;; y = 7 (shadow price: 0)
-;; z = 0 (shadow price: 1/2)
+;; x = 1/2 (reduced cost: 0)
+;; y = 7 (reduced cost: 0)
+;; z = 0 (reduced cost: 1/2)
 ```
