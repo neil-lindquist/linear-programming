@@ -22,9 +22,22 @@ description of the issue."))
   ((expression :reader nonlinear-expression
                :initarg :expression
                :documentation "Contains the problematic expression"))
-  (:report (lambda (err stream) (format stream "~S is not a linear expression" (nonlinear-expression err))))
+  (:report (lambda (err stream)
+             (format stream "~S is not a linear expression" (nonlinear-expression err))))
   (:documentation "Indicates a form was not a linear expression. This includes the use of
 nonlinear functions and taking the product of multiple variables"))
+
+(define-condition invalid-bounds-error (parsing-error)
+  ((var :reader var
+        :initarg :var)
+   (ub :reader ub
+       :initarg ub)
+   (lb :reader lb
+       :initarg lb))
+  (:report (lambda (err stream)
+             (format stream "The bounds for variable ~A are invalid. Upper bound=~A, Lower bound=~A"
+                            (var err) (ub err) (lb err))))
+  (:documentation "Indicates a problem with a variable's bounds."))
 
 (define-condition solver-error (error)
   ()

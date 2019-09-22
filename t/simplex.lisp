@@ -55,15 +55,7 @@
                      :constraints '((<= ((x . 5) (y . 1)) 10)
                                     (<= ((x . 1) (y . 7)) 18)
                                     (/= ((x . 1) (y . 1)) 5)))))
-    (signals parsing-error (build-tableau problem))
-
-
-    (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
-                                         (<= (+ (* 2 x) y) 8)
-                                         (<= (+ y z) 7)
-                                         (free y))))
-      (signals unsupported-constraint-error (build-tableau problem))))
-
+    (signals parsing-error (build-tableau problem)))
 
   (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
                                        (<= (+ (* 2 x) y) 8)
@@ -107,7 +99,7 @@
     (is (tableau-matrix-equal #2A((2 1 0 1 0 8) (0 1 1 0 1 7) (2 1 1 0 0 8) (-1 -4 -3 0 0 0))
                               #(x y z)
                               main-tableau))
-    (is (equalp #(3 4 5) (tableau-basis-columns main-tableau)))
+    (is (equalp #(3 4 6) (tableau-basis-columns main-tableau)))
     (is (= 0 (tableau-objective-value main-tableau))))
 
   (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
@@ -137,7 +129,7 @@
     (is (tableau-matrix-equal #2A((2 1 0 1 0 0 8) (0 1 1 0 1 0 7) (1 0 1 0 0 -1 1) (-1 -4 -3 0 0 0 0))
                               #(x y z)
                               main-tableau))
-    (is (equalp #(3 4 6) (tableau-basis-columns main-tableau)))
+    (is (equalp #(3 4 7) (tableau-basis-columns main-tableau)))
     (is (= 0 (tableau-objective-value main-tableau)))))
 
 (test pivot-row
@@ -350,6 +342,6 @@
       (is (= 0 z)))
     (eval `(with-tableau-variables ,problem ,tableau
              (is (= 57/2 w))
-             (is (= x 1/2))
-             (is (= y 7))
-             (is (= z 0))))))
+             (is (= 1/2 x))
+             (is (= 7 y))
+             (is (= 0 z))))))

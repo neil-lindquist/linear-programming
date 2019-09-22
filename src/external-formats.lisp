@@ -36,9 +36,9 @@ the rest of the elements are the constraints."
                                           (format-linear-expression (second constraint))
                                           (third constraint)))))
          (int-vars (problem-integer-vars problem))
-         (free-vars (problem-free-vars problem))
+         (bounds (problem-var-bounds problem))
          (constraints (append (when int-vars (list (list* 'integer int-vars)))
-                              (when free-vars (list (list* 'free free-vars)))
+                              (when bounds (list (list* 'bounds bounds)))
                               eq-constraints))
          (problem-sexp (cons objective-func constraints)))
     (with-standard-io-syntax
