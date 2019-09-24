@@ -240,7 +240,7 @@ the rest of the elements are the constraints."
                        ((string= bound-type "LO")
                         (list* (field 4 line :number) (cdr attrs)))
                        ((string= bound-type "UP")
-                        (list* (second attrs) (field 4 line :number) (cddr attrs)))
+                        (list* (first attrs) (field 4 line :number) (cddr attrs)))
                        ((string= bound-type "FX")
                         (let ((value (field 4 line :number)))
                           (list* value value (cddr attrs))))
@@ -260,29 +260,23 @@ the rest of the elements are the constraints."
             ;; extension for specifying the problem type
             ((string= current-header "objsense")
              (setf current-header nil) ; only one record for this header
-             (labels ((process-problem-type (type)
-                        (cond
-                          ((or (string-equal type "max")
-                               (string-equal type "maximizing")
-                               (eq type 'max))
-                           (setf problem-type 'max))
-                          ((or (string-equal type "min")
-                               (string-equal type "minimizing")
-                               (eq type 'min))
-                           (setf problem-type 'min))
-                          (t
-                           (restart-case (error 'parsing-error :description (format nil "~S is not a know problem type" type))
-                             (continue ()
-                               :report "Ignore the entry")
-                             (use-value (type)
-                               :report "Use specified value"
-                               :interactive (lambda () (format t "Type a form to be evaluated: ") (eval (read)))
-                               (process-problem-type type)))))))
-               (process-problem-type (field 0 line :name-string))))
+             (let ((type (field 0 line :name-string)))
+               (cond
+                 ((or (string-equal type "max")
+                      (string-equal type "maximizing"))
+                  (setf problem-type 'max))
+                 ((or (string-equal type "min")
+                      (string-equal type "minimizing"))
+                  (setf problem-type 'min))
+                 (t
+                  (error 'parsing-error :description (format nil "~S is not a know problem type" type))))))
             ;; extension that supports selecting the objective function
             ((string= current-header "objname")
              (setf current-header nil ; only one record for this header
-                   objective (field 0 line :name-string)))))))
+                   objective (field 0 line :name-string)))
+            (t (error "Unknown header-card ~A~%" current-header))))))
+    (unless (or (eq problem-type 'max) (eq problem-type 'min))
+      (error "No valid problem type was specified"))
     (let ((vars (make-array (list (hash-table-count var-info)) :element-type 'symbol
                                                                :initial-element nil))
           (int-vars nil)
