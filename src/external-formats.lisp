@@ -79,6 +79,11 @@ the rest of the elements are the constraints."
   ;; http://lpsolve.sourceforge.net/5.1/mps-format.htm
   ;; http://cgm.cs.mcgill.ca/~avis/courses/567/cplex/reffileformatscplex.pdf
   ;; TODO consider adding support for free-format MPS files
+  "Reads a problem in MPS format from the given stream. Note that a line starting
+with `ENDATA` ends the problem, so MPS files can be embedded in streams of other
+data. Only the fixed width version of the format is supported, but both the
+`OBJSENCE` and `OBJNAME` headers are supported and the `BV`, `LI`, and `UI`
+boundaries are supported."
   (let ((package (or (find-package package) *package*))
         (current-header nil)
         (problem-name nil)
