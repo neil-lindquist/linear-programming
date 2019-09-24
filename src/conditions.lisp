@@ -32,9 +32,9 @@ nonlinear functions and taking the product of multiple variables"))
   ((var :reader var
         :initarg :var)
    (ub :reader ub
-       :initarg ub)
+       :initarg :ub)
    (lb :reader lb
-       :initarg lb))
+       :initarg :lb))
   (:report (lambda (err stream)
              (format stream "The bounds for variable ~A are invalid. Upper bound=~A, Lower bound=~A"
                             (var err) (ub err) (lb err))))

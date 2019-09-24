@@ -226,9 +226,9 @@ the rest of the elements are the constraints."
                  (setf rhs-id current-rhs-id))
                (setf (third (gethash (field 3 line :symbol) rows))
                      (field 4 line :number))
-               (when (/= 0 (length (field 5 line))))
-               (setf (third (gethash (field 5 line :symbol) rows))
-                     (field 6 line :number))))
+               (when (/= 0 (length (field 5 line)))
+                 (setf (third (gethash (field 5 line :symbol) rows))
+                       (field 6 line :number)))))
             ;; Sets bounds for specific variables & including an extension for integer variables
             ((string= current-header "bounds")
              (let* ((var (field 3 line :symbol))
