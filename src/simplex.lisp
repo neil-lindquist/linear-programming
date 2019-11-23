@@ -469,5 +469,9 @@ that constraint."
                   (funcall comparator current-best (tableau-objective-value tab)))
               (setf current-best (tableau-objective-value tab)
                     current-solution tab)))))
-    ; return the tableau with the solution
-    current-solution))
+
+    ; if it failed to find a solution, raise the appropriate error
+    ; otherwise, return the found solution
+    (if current-solution
+      current-solution
+      (error 'infeasible-problem-error))))
