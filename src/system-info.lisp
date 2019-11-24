@@ -9,22 +9,23 @@
   (:documentation "Utilities for inspecting how certain implmenetation-dependant features behave."))
 (in-package :linear-programming/system-info)
 
-(define-constant +supported-floats+
-  (let ((floats nil))
-    ;; sbcl only supports single and double floats, so some branches are unused
-    #+sbcl (declare (sb-ext:muffle-conditions sb-ext:compiler-note))
-    ;; types that don't have their own representation will get reported as a different type
-    (when (eq (type-of 0l0) 'long-float)
-      (push 'long-float floats))
-    (when (eq (type-of 0d0) 'double-float)
-       (push 'double-float floats))
-    (when (eq (type-of 0f0) 'single-float)
-      (push 'single-float floats))
-    (when (eq (type-of 0s0) 'short-float)
-      (push 'short-float floats))
-    floats)
-  :test 'equal ; lists have to be compared with equal
-  :documentation "Contains the distinct floating point representations supported.")
+(eval-when (:compile-toplevel :load-toplevel)
+  (define-constant +supported-floats+
+    (let ((floats nil))
+      ;; sbcl only supports single and double floats, so some branches are unused
+      #+sbcl (declare (sb-ext:muffle-conditions sb-ext:compiler-note))
+      ;; types that don't have their own representation will get reported as a different type
+      (when (eq (type-of 0l0) 'long-float)
+        (push 'long-float floats))
+      (when (eq (type-of 0d0) 'double-float)
+         (push 'double-float floats))
+      (when (eq (type-of 0f0) 'single-float)
+        (push 'single-float floats))
+      (when (eq (type-of 0s0) 'short-float)
+        (push 'short-float floats))
+      floats)
+    :test 'equal ; lists have to be compared with equal
+    :documentation "Contains the distinct floating point representations supported."))
 
 (declaim (inline optimization-type))
 (defun optimization-type (x)
