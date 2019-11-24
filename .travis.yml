@@ -7,7 +7,7 @@ addons:
   apt:
     packages:
       - libc6-i386
-      - openjdk-7-jre
+      - default-jre
 
 env:
   global:
