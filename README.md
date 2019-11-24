@@ -13,7 +13,7 @@ This is a Common Lisp library for solving linear programming problems.
 It is implemented in pure Common Lisp, instead of calling a high performance library.
 This has the advantage of being dependent on only a couple community standard libraries (ASDF, Alexandria, Iterate).
 However, this limits the performance of solving larger problems.
-If there is interest in a high performance backend, let me know; it shouldn't be hard to make the backend modular.
+If there is interest in a high performance backend, please open an issue; the library is setup to support a high performance backend, but there has yet to be any interest in it.
 
 ## Installation
 The linear-programming library is avalible in both the main Quicklisp distribution and Ultralisp, so it can loaded with with `(ql:quickload :linear-programming)`.
