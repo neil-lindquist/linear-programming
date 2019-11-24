@@ -4,6 +4,8 @@
         :fiveam
         :linear-programming-test/base
         :linear-programming)
+  (:import-from :linear-programming/utils
+                #:fp=)
   (:export #:integration))
 
 (in-package :linear-programming-test/integration)
@@ -65,3 +67,14 @@
                         (<= 0 a 1))
     (is (= 74/103 a))
     (is (= 0 (reduced-cost a)))))
+
+
+(test numerial-issue
+  ;; This problem exposed a bug with floating point round off
+  (with-solved-problem ((= z (min (+ b (* 0.6861807 a))))
+                        (>=  (+ b (* 0.6861807 a)) 0.9372585)
+                        (>=  (+ b (* 0.7776901 a)) 0.7461006)
+                        (>=  (+ b (* 0.14247864 a)) 0.38555977))
+    (is (fp= 0.9372585 z))
+    ;; Note that there are multiple solutions
+    (is (fp= z (+ b (* 0.6861807 a))))))

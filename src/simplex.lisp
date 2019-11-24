@@ -3,7 +3,8 @@
   (:use :cl
         :iterate
         :linear-programming/conditions
-        :linear-programming/problem)
+        :linear-programming/problem
+        :linear-programming/utils)
   (:import-from :alexandria
                 #:curry
                 #:if-let
@@ -332,13 +333,13 @@ simplex method."
         (finding i minimizing (aref (tableau-matrix tableau) num-constraints i)
                   into col)
         (finally
-          (return (when (< (aref (tableau-matrix tableau) num-constraints col) 0)
+          (return (when (fp< (aref (tableau-matrix tableau) num-constraints col) 0)
                     col))))
       (iter (for i from 0 below (tableau-var-count tableau))
         (finding i maximizing (aref (tableau-matrix tableau) num-constraints i)
                    into col)
         (finally
-          (return (when (> (aref (tableau-matrix tableau) num-constraints col) 0)
+          (return (when (fp> (aref (tableau-matrix tableau) num-constraints col) 0)
                     col)))))))
 
 (declaim (inline find-pivoting-row))
@@ -346,7 +347,7 @@ simplex method."
   "Gets the column that will leave the basis."
   (let ((matrix (tableau-matrix tableau)))
     (iter (for i from 0 below (tableau-constraint-count tableau))
-      (when (< 0 (aref matrix i entering-col))
+      (when (fp< 0 (aref matrix i entering-col))
         (finding i minimizing (/ (aref matrix i (tableau-var-count tableau))
                                  (aref matrix i entering-col)))))))
 
@@ -364,7 +365,7 @@ unchanged."
     ((listp tableau)
      (let ((solved-art-tab (n-solve-tableau (first tableau)))
            (main-tab (second tableau)))
-       (unless (= 0 (tableau-objective-value solved-art-tab))
+       (unless (fp= 0 (tableau-objective-value solved-art-tab))
          (error 'infeasible-problem-error))
 
        ; Have starting basis, use solve-art-tab to set main-tab to that basis

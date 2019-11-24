@@ -69,3 +69,89 @@
   (fiveam:pass)
   (validate-bounds 5 6 'x)
   (fiveam:pass))
+
+
+(test fp=
+  (declare (notinline fp=))
+  (is (fp= 0 0))
+  (is (fp= 8 8))
+  (is (not (fp= 0 1)))
+  (is (not (fp= 0 (expt 2 -128))))
+
+  (is (fp= 0.0s0 0.0s0))
+  (is (fp= 0.0s0 (* 4 short-float-epsilon)))
+  (is (not (fp= 0.0s0 (* 4 short-float-epsilon) 1)))
+  (is (not (fp= (/ 1s0 100) 0.0s0)))
+
+  (is (fp= 0.0f0 0.0f0))
+  (is (fp= 0.0f0 (* 4 single-float-epsilon)))
+  (is (not (fp= 0.0f0 (* 4 single-float-epsilon) 1)))
+  (is (not (fp= (/ 1f0 100) 0.0f0)))
+
+  (is (fp= 0.0d0 0.0d0))
+  (is (fp= 0.0d0 (* 4 double-float-epsilon)))
+  (is (not (fp= 0.0d0 (* 4 double-float-epsilon) 1)))
+  (is (not (fp= (/ 1d0 100) 0.0d0)))
+
+  (is (fp= 0.0l0 0.0l0))
+  (is (fp= 0.0l0 (* 4 long-float-epsilon)))
+  (is (not (fp= 0.0l0 (* 4 long-float-epsilon) 1)))
+  (is (not (fp= (/ 1l0 100) 0.0l0))))
+
+
+(test fp>
+  (declare (notinline fp>))
+  (is (fp> 0 -1))
+  (is (fp> 8 0))
+  (is (fp> (expt 2 -128) 0))
+  (is (not (fp> 0 0)))
+  (is (not (fp>= 0 (expt 2 -128))))
+
+  (is (fp> 0.0s0 -1.0s0))
+  (is (not (fp> 0.0s0 0.0s0)))
+  (is (not (fp> (* 4 short-float-epsilon) 0.0s0)))
+  (is (fp> (* 4 short-float-epsilon) 0.0s0 1))
+
+  (is (fp> 0.0f0 -1.0f0))
+  (is (not (fp> 0.0f0 0.0f0)))
+  (is (not (fp> (* 4 single-float-epsilon) 0.0f0)))
+  (is (fp> (* 4 single-float-epsilon) 0.0f0 1))
+
+  (is (fp> 0.0d0 -1.0d0))
+  (is (not (fp> 0.0d0 0.0d0)))
+  (is (not (fp> (* 4 double-float-epsilon) 0.0d0)))
+  (is (fp> (* 4 double-float-epsilon) 0.0d0 1))
+
+  (is (fp> 0.0l0 -1.0l0))
+  (is (not (fp> 0.0l0 0.0l0)))
+  (is (not (fp> (* 4 long-float-epsilon) 0.0l0)))
+  (is (fp> (* 4 long-float-epsilon) 0.0l0 1)))
+
+
+(test fp<
+  (declare (notinline fp<))
+  (is (fp< -1 0))
+  (is (fp< 0 8))
+  (is (fp< 0 (expt 2 -128)))
+  (is (not (fp< 0 0)))
+  (is (not (fp< (expt 2 -128) 0)))
+
+  (is (fp< -1.0s0 0.0s0))
+  (is (not (fp< 0.0s0 0.0s0)))
+  (is (not (fp< 0.0s0 (* 4 short-float-epsilon))))
+  (is (fp< 0.0s0 (* 4 short-float-epsilon) 1))
+
+  (is (fp< -1.0f0 0.0f0))
+  (is (not (fp< 0.0f0 0.0f0)))
+  (is (not (fp< 0.0f0 (* 4 single-float-epsilon))))
+  (is (fp< 0.0f0 (* 4 single-float-epsilon) 1))
+
+  (is (fp< -1.0d0 0.0d0))
+  (is (not (fp< 0.0d0 0.0d0)))
+  (is (not (fp< 0.0d0 (* 4 double-float-epsilon))))
+  (is (fp< 0.0d0 (* 4 double-float-epsilon) 1))
+
+  (is (fp< -1.0l0 0.0l0))
+  (is (not (fp< 0.0l0 0.0l0)))
+  (is (not (fp< 0.0l0 (* 4 long-float-epsilon))))
+  (is (fp< 0.0l0 (* 4 long-float-epsilon) 1)))
