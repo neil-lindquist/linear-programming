@@ -26,6 +26,7 @@
   :test 'equal ; lists have to be compared with equal
   :documentation "Contains the distinct floating point representations supported.")
 
+(declaim (inline optimization-type))
 (defun optimization-type (x)
   "Gets the type of `x` to optimize for. If `x` is a rational, returns `rational`.
 Otherwise, returns the type of `x`."
