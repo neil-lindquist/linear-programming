@@ -22,6 +22,7 @@
   (is (member (type-of 1.0l0) +supported-floats+)))
 
 (test optimization-type
+  (declare (notinline optimization-type))
   (is (eq (optimization-type 1) 'rational))
   (is (eq (optimization-type 99) 'rational))
   (is (eq (optimization-type (+ 6 most-positive-fixnum)) 'rational))
@@ -33,6 +34,7 @@
   (is (eq (optimization-type 1.0l0) (type-of 1.0l0))))
 
 (test float-contagion
+  (declare (notinline float-contagion))
   (iter (for types on (append +supported-floats+ '(rational)))
         (for t1 = (first types))
     (iter (for t2 in types)
