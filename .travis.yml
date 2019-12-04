@@ -4,6 +4,10 @@ sudo: false
 #from https://github.com/roswell/roswell/wiki/Travis-CI
 
 addons:
+  homebrew:
+    update: true
+    packages:
+    - roswell
   apt:
     packages:
       - libc6-i386
@@ -24,6 +28,11 @@ env:
 
 matrix:
   fast_finish: true
+  include:
+    - os: osx
+      env: LISP=sbcl-bin
+    - os: osx
+      env: LISP=ccl-bin
 
 cache:
   directories:
