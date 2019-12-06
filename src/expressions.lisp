@@ -23,14 +23,14 @@
 (declaim (inline sum-linear-expressions))
 (defun sum-linear-expressions (&rest exprs)
   "Takes a list of linear expressions and reduces it into a single expression."
-  (reduce #'(lambda (collected next)
-              (if-let (pair (assoc (car next) collected))
-                (progn
-                  (incf (cdr pair) (cdr next))
-                  collected)
-                (cons (copy-list next) collected)))
-          (apply 'append exprs)
-          :initial-value nil))
+  (let ((sum (copy-alist (first exprs))))
+    (iter (for expr in (rest exprs))
+      (iter (for term in expr)
+        (if-let (pair (assoc (car term) sum))
+          (incf (cdr pair) (cdr term))
+          (push (cons (car term) (cdr term)) sum))))
+    sum))
+
 
 (declaim (inline scale-linear-expression))
 (defun scale-linear-expression (expr scalar)
