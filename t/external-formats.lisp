@@ -37,8 +37,8 @@
                    (problem-integer-vars problem)))
     (is (set-equal '()
                    (problem-var-bounds problem)))
-    (is (set-equal '((<= ((cl-user::x . 1) (cl-user::y . 1)) 8) (<= ((cl-user::y . 2) (cl-user::z . 1)) 7))
-                   (problem-constraints problem))))
+    (is (simple-linear-constraint-set-equal '((<= ((cl-user::x . 1) (cl-user::y . 1)) 8) (<= ((cl-user::y . 2) (cl-user::z . 1)) 7))
+                                        (problem-constraints problem))))
 
   (let ((problem (with-input-from-string (stream "((max (+ x (* 4 y) (* 8 z)))
                                                    (<= (+ x y) 8)
@@ -57,8 +57,8 @@
                    (problem-integer-vars problem)))
     (is (set-equal '((cl-user::y . (nil . nil)))
                    (problem-var-bounds problem)))
-    (is (set-equal '((<= ((cl-user::x . 1) (cl-user::y . 1)) 8) (<= ((cl-user::y . 1) (cl-user::z . 1)) 7))
-                   (problem-constraints problem))))
+    (is (simple-linear-constraint-set-equal '((<= ((cl-user::x . 1) (cl-user::y . 1)) 8) (<= ((cl-user::y . 1) (cl-user::z . 1)) 7))
+                                        (problem-constraints problem))))
 
   ;; read eval
   (signals error (with-input-from-string (stream "((max (+ x (* 4 y) (* 8 z)))
@@ -79,8 +79,8 @@
                    (problem-objective-func problem)))
     (is (set-equal '()
                    (problem-integer-vars problem)))
-    (is (set-equal '((<= ((cl-user::x . 1) (cl-user::y . 1)) 8) (<= ((cl-user::y . 1) (cl-user::z . 1)) 7))
-                   (problem-constraints problem))))
+    (is (simple-linear-constraint-set-equal '((<= ((cl-user::x . 1) (cl-user::y . 1)) 8) (<= ((cl-user::y . 1) (cl-user::z . 1)) 7))
+                                        (problem-constraints problem))))
 
   ;;specify package
   (let ((problem (with-input-from-string (stream "((max (+ x (* 4 y) (* 8 z)))
@@ -99,8 +99,8 @@
                    (problem-integer-vars problem)))
     (is (set-equal '()
                    (problem-var-bounds problem)))
-    (is (set-equal '((<= ((x . 1) (y . 1)) 8) (<= ((y . 1) (z . 1)) 7))
-                   (problem-constraints problem)))
+    (is (simple-linear-constraint-set-equal '((<= ((x . 1) (y . 1)) 8) (<= ((y . 1) (z . 1)) 7))
+                                        (problem-constraints problem)))
 
    ;;Only read sexp
    (let ((problem (with-input-from-string (stream "((max (+ x (* 4 y) (* 8 z)))
@@ -119,8 +119,8 @@
                     (problem-objective-func problem)))
      (is (set-equal '()
                     (problem-integer-vars problem)))
-     (is (set-equal '((<= ((x . 1) (y . 1)) 8) (<= ((y . 1) (z . 1)) 7))
-                    (problem-constraints problem))))))
+     (is (simple-linear-constraint-set-equal '((<= ((x . 1) (y . 1)) 8) (<= ((y . 1) (z . 1)) 7))
+                                         (problem-constraints problem))))))
 
 
 (test write-sexp
@@ -141,8 +141,8 @@
                    (problem-objective-func parsed-problem)))
     (is (set-equal '()
                    (problem-integer-vars parsed-problem)))
-    (is (set-equal '((<= ((x . 1) (y . 1)) 8) (<= ((y . 1) (z . 1)) 7))
-                   (problem-constraints parsed-problem))))
+    (is (simple-linear-constraint-set-equal '((<= ((x . 1) (y . 1)) 8) (<= ((y . 1) (z . 1)) 7))
+                                        (problem-constraints parsed-problem))))
 
   (let* ((base-problem (parse-linear-problem '(max (+ x (* 4 y) (* 8 z)))
                                              '((<= (+ x y) 8)
@@ -164,8 +164,8 @@
                    (problem-integer-vars parsed-problem)))
     (is (set-equal '((y . (nil . nil)))
                    (problem-var-bounds parsed-problem)))
-    (is (set-equal '((<= ((x . 1) (y . 1)) 8) (<= ((y . 1) (z . 1)) 7))
-                   (problem-constraints parsed-problem))))
+    (is (simple-linear-constraint-set-equal '((<= ((x . 1) (y . 1)) 8) (<= ((y . 1) (z . 1)) 7))
+                                        (problem-constraints parsed-problem))))
 
   ;;specify package
   (let* ((base-problem (parse-linear-problem '(max (+ x (* 4 y) (* 8 z)))
@@ -185,8 +185,8 @@
                    (problem-objective-func parsed-problem)))
     (is (set-equal '()
                    (problem-integer-vars parsed-problem)))
-    (is (set-equal '((<= ((x . 1) (y . 1)) 8) (<= ((y . 1) (z . 1)) 7))
-                   (problem-constraints parsed-problem)))))
+    (is (simple-linear-constraint-set-equal '((<= ((x . 1) (y . 1)) 8) (<= ((y . 1) (z . 1)) 7))
+                                        (problem-constraints parsed-problem)))))
 
 (test read-mps
   (with-open-file (stream (merge-pathnames "t/data/simple-problem.mps"
@@ -205,11 +205,8 @@
                      (problem-integer-vars problem)))
       (is (set-equal '()
                      (problem-var-bounds problem)))
-      (is (set-equal '((<= ((x . 3) (y . 1)) 8) (<= ((y . 1) (z . 2)) 7))
-                     (problem-constraints problem)
-                     :test (lambda (a b) (and (eq (first a) (first b))
-                                              (set-equal (second a) (second b))
-                                              (= (third a) (third b))))))))
+      (is (simple-linear-constraint-set-equal '((<= ((x . 3) (y . 1)) 8) (<= ((y . 1) (z . 2)) 7))
+                                          (problem-constraints problem)))))
   (with-open-file (stream (merge-pathnames "t/data/advanced-problem.mps"
                                            (asdf:system-source-directory :linear-programming-test))
                           :direction :input
@@ -226,8 +223,5 @@
                      (problem-integer-vars problem)))
       (is (set-equal '((z . (0 . 4)) (|w| . (0 . 1)) (x . (nil . nil)))
                      (problem-var-bounds problem)))
-      (is (set-equal '((<= ((x . 3) (y . 1)) 8) (<= ((y . 1) (z . 2)) 10) (<= ((|w| . -1) (x . -2) (z . 1)) 1))
-                     (problem-constraints problem)
-                     :test (lambda (a b) (and (eq (first a) (first b))
-                                             (set-equal (second a) (second b))
-                                             (= (third a) (third b)))))))))
+      (is (simple-linear-constraint-set-equal '((<= ((x . 3) (y . 1)) 8) (<= ((y . 1) (z . 2)) 10) (<= ((|w| . -1) (x . -2) (z . 1)) 1))
+                     (problem-constraints problem))))))
