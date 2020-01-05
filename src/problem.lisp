@@ -7,7 +7,9 @@
   (:import-from :alexandria
                 #:if-let)
   (:import-from :linear-programming/utils
-                #:validate-bounds)
+                #:validate-bounds
+                #:lb-max
+                #:ub-min)
   (:export #:make-linear-problem
            #:parse-linear-problem
 
@@ -125,14 +127,8 @@ inequalities and a list of integer variables."
                         (old-bound (cdr match)))
                    (if match
                      (setf (cdr match)
-                           (cons (cond
-                                   ((null (car old-bound)) (car new-bound))
-                                   ((null (car new-bound)) (car old-bound))
-                                   (t (min (car old-bound) (car new-bound))))
-                                 (cond
-                                   ((null (cdr old-bound)) (cdr new-bound))
-                                   ((null (cdr new-bound)) (cdr old-bound))
-                                   (t (min (cdr old-bound) (cdr new-bound))))))
+                           (cons (lb-max (car old-bound) (car new-bound))
+                                 (ub-min (cdr old-bound) (cdr new-bound))))
                      (collect (cons var
                                     (cons (or (car new-bound) 0) ; if there isn't a previous bound, use the implicit bound
                                           (cdr new-bound)))
@@ -150,18 +146,8 @@ inequalities and a list of integer variables."
                   integer
                   (reduce (lambda (result next)
                             (if-let (match (assoc (first next) result))
-                              (let* ((next-lb (car (cdr next)))
-                                     (next-ub (cdr (cdr next)))
-                                     (match-lb (car (cdr match)))
-                                     (match-ub (cdr (cdr match)))
-                                     (lb (cond
-                                           ((null next-lb) match-lb)
-                                           ((null match-lb) next-lb)
-                                           (t (max match-lb next-lb))))
-                                     (ub (cond
-                                           ((null next-ub) match-ub)
-                                           ((null match-ub) next-ub)
-                                           (t (min match-lb next-lb)))))
+                              (let* ((lb (lb-max (car (cdr next)) (car (cdr match))))
+                                     (ub (ub-min (cdr (cdr next)) (cdr (cdr next)))))
                                 (validate-bounds lb ub (first next))
                                 (setf (cdr match) (cons lb ub))
                                 result)
