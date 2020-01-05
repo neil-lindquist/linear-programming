@@ -66,8 +66,8 @@
    (is (set-equal '()
                   (problem-var-bounds problem)))
    (is (simple-linear-constraint-set-equal '((<= ((x . 2) (y . 1)) 8)
-                                         (<= ((y . 1) (z . 1)) 7)
-                                         (>= ((x . 1) (z . 1)) 1))
+                                             (<= ((y . 1) (z . 1)) 7)
+                                             (>= ((x . 1) (z . 1)) 1))
                                        (problem-constraints problem))))
 
   (let ((problem (make-linear-problem (max (+ x (* 4 y) (* 8 z)))
@@ -87,8 +87,8 @@
     (is (set-equal '()
                    (problem-var-bounds problem)))
     (is (simple-linear-constraint-set-equal '((<= ((x . 2) (y . 1)) 8)
-                                          (<= ((y . 1) (z . 1)) 7)
-                                          (= ((x . 2) (y . 1) (z . 1)) 8))
+                                              (<= ((y . 1) (z . 1)) 7)
+                                              (= ((x . 2) (y . 1) (z . 1)) 8))
                                         (problem-constraints problem))))
 
   (let ((problem (make-linear-problem (min x)
@@ -146,7 +146,7 @@
     (is (set-equal '((y . (0 . 1)))
                    (problem-var-bounds problem)))
     (is (simple-linear-constraint-set-equal '((<= ((x . 1) (y . 1)) 8)
-                                          (<= ((y . -1) (z . 1)) 7))
+                                              (<= ((y . -1) (z . 1)) 7))
                                         (problem-constraints problem))))
 
   ; free variable
@@ -167,7 +167,7 @@
     (is (set-equal '((x . (nil . nil)) (y . (1 . nil)) (z . (-10 . 5)))
                    (problem-var-bounds problem)))
     (is (simple-linear-constraint-set-equal '((<= ((x . 1) (y . 1)) 8)
-                                          (<= ((y . -1) (z . 1)) 7))
+                                              (<= ((y . -1) (z . 1)) 7))
                                         (problem-constraints problem))))
   (let ((problem (make-linear-problem (max (= total (+ x (* -4 y) (* 8 z))))
                                       (<= (+ x y) 8)
@@ -187,7 +187,7 @@
     (is (set-equal '((y . (1 . 8)) (z . (nil . -5)))
                    (problem-var-bounds problem)))
     (is (simple-linear-constraint-set-equal '((<= ((x . 1) (y . 1)) 8)
-                                          (<= ((y . -1) (z . 1)) 7))
+                                              (<= ((y . -1) (z . 1)) 7))
                                         (problem-constraints problem))))
 
  ; objective func name within the max
