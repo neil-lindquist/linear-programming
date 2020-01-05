@@ -15,6 +15,7 @@
 
 (in-package :linear-programming/expressions)
 
+(declaim (inline linear-constant-p))
 (defun linear-constant-p (expr)
   "A predicate for whether a linear expression is constant."
   (and (= 1 (length expr))
@@ -22,6 +23,11 @@
 
 (declaim (inline sum-linear-expressions))
 (defun sum-linear-expressions (&rest exprs)
+  "Takes linear expressions and reduces it into a single expression."
+  (sum-linear-expressions-list exprs))
+
+(declaim (inline sum-linear-expressions-list))
+(defun sum-linear-expressions-list (exprs)
   "Takes a list of linear expressions and reduces it into a single expression."
   (let ((sum (copy-alist (first exprs))))
     (iter (for expr in (rest exprs))
@@ -49,59 +55,62 @@ constant values are mapped to `+constant+`."
     ((numberp expr)
      (list (cons '+constant+ expr)))
 
-    ; error case
-    ((not (listp expr))
-     (error 'parsing-error
-            :description (format nil "~S is not a symbol, number, or an expression" expr)))
+    ; lists
+    ((listp expr)
+     (case (first expr)
+       ; low-level specifiers
+       ((:alist)
+        (rest expr))
+       ((:plist)
+        (plist-alist (rest expr)))
 
-    ; low-level specifiers
-    ((eq (first expr) :alist)
-     (rest expr))
-    ((eq (first expr) :plist)
-     (plist-alist (rest expr)))
+       ; arithmetic
+       ((+)
+        (sum-linear-expressions-list (mapcar 'parse-linear-expression (rest expr))))
 
-    ; arithmetic
-    ((eq (first expr) '+)
-     (apply #'sum-linear-expressions (mapcar 'parse-linear-expression (rest expr))))
+       ((*)
+        (let ((factors (mapcar #'parse-linear-expression (rest expr)))
+              (variable nil)
+              (constant 1))
+          (dolist (fact factors)
+            (cond
+              ((linear-constant-p fact)
+               (setf constant (* constant (cdar fact))))
+              (variable
+               (error 'nonlinear-error :expression expr))
+              (t
+               (setf variable fact))))
+          (if variable
+            (scale-linear-expression variable constant)
+            `((+constant+ . ,constant)))))
 
-    ((eq (first expr) '*)
-     (let ((factors (mapcar #'parse-linear-expression (rest expr)))
-           (variable nil))
-       (iter (for fact in factors)
-         (cond
-           ((linear-constant-p fact)
-            (collect fact into constants))
-           (variable
-            (error 'nonlinear-error :expression expr))
-           (t
-            (setf variable fact)))
-         (finally
-           (let ((constant-product (reduce #'* constants :key #'cdar)))
-             (return (if variable
-                       (scale-linear-expression variable constant-product)
-                       `((+constant+ . ,constant-product)))))))))
+       ((-)
+        (if (= 2 (length expr))
+          (scale-linear-expression (parse-linear-expression (second expr))
+                                   -1)
+          (sum-linear-expressions (parse-linear-expression (second expr))
+                                  (scale-linear-expression
+                                    (parse-linear-expression (list* '+ (nthcdr 2 expr)))
+                                    -1))))
 
-    ((and (eq (first expr) '-) (= 2 (length expr)))
-     (scale-linear-expression (parse-linear-expression (second expr)) -1))
-    ((eq (first expr) '-)
-     (sum-linear-expressions (parse-linear-expression (second expr))
-                             (scale-linear-expression
-                               (parse-linear-expression (list* '+ (nthcdr 2 expr)))
-                               -1)))
+       ((/)
+        (if (= 2 (length expr))
+          (let ((val (parse-linear-expression (second expr))))
+            (unless (linear-constant-p val)
+              (error 'nonlinear-error :expression expr))
+            `((+constant+ . ,(/ (cdar val)))))
+          (let ((divisors (mapcar #'parse-linear-expression (nthcdr 2 expr)))
+                (dividend (parse-linear-expression (second expr))))
+            (unless (every #'linear-constant-p divisors)
+              (error 'nonlinear-error :expression expr))
+            (scale-linear-expression dividend (/ (reduce #'* divisors :key #'cdar))))))
 
-    ((and (eq (first expr) '/) (= 2 (length expr)))
-     (let ((val (parse-linear-expression (second expr))))
-       (unless (linear-constant-p val)
-         (error 'nonlinear-error :expression expr))
-       `((+constant+ . ,(/ (cdar val))))))
-    ((eq (first expr) '/)
-     (let ((divisors (mapcar #'parse-linear-expression (nthcdr 2 expr)))
-           (dividend (parse-linear-expression (second expr))))
-       (unless (every #'linear-constant-p divisors)
-         (error 'nonlinear-error :expression expr))
-       (scale-linear-expression dividend (/ (reduce #'* divisors :key #'cdar)))))
+       ; Unknown functions
+       (t (error 'nonlinear-error :expression expr))))
 
-    (t (error 'nonlinear-error :expression expr))))
+    ; Unknown objecects
+    (t (error 'parsing-error
+              :description (format nil "~S is not a symbol, number, or an expression" expr)))))
 
 
 (defun format-linear-expression (alist)
