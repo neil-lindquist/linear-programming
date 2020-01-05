@@ -1,3 +1,8 @@
+## 2.0.1
+* Fix errors when using floats
+* Fix infeasible problems not correctly raising errors solver
+* Improve performance of parsing and solving problems
+
 ## 2.0.0
 * Modify the use of the term "shadow price" to the correct term "reduced cost"
 * Add an interface for replacing the solver backend
