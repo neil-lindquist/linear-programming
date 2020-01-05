@@ -41,15 +41,19 @@ package should be used through the interface provided by the
 
 ;;; Tableau representation
 
+(deftype var-mapping-entry ()
+  "Represents a maping from a problem's variable to a set of columns in the tableau."
+  '(cons (member positive negative signed) (cons fixnum (or null (cons real null)))))
+
 (defstruct (tableau (:copier #:shallow-tableau-copy))
   "Contains the necessary information for a simplex tableau."
   ; note that two tableaus are stored, which may differ when solving integer problems
   (problem nil :read-only t :type problem) ; the overall problem
   (instance-problem nil :read-only t :type problem) ; the problem for this specific tableau
   (matrix #2A() :read-only t :type (simple-array real 2))
-  (basis-columns #() :read-only t :type (simple-array * (*)))
-  (var-count 0 :read-only t :type (integer 0 *))
-  (constraint-count 0 :read-only t :type (integer 0 *))
+  (basis-columns #() :read-only t :type (simple-array fixnum (*)))
+  (var-count 0 :read-only t :type (and fixnum unsigned-byte))
+  (constraint-count 0 :read-only t :type (and fixnum unsigned-byte))
   (var-mapping (make-hash-table :test #'eq) :read-only t :type hash-table))
 
 (declaim (inline copy-tableau))
@@ -79,24 +83,26 @@ package should be used through the interface provided by the
     (let* ((mapping (gethash var (tableau-var-mapping tableau))))
       (unless mapping
         (error "~S is not a variable in the tableau" var))
-      (ecase (first mapping)
-        (positive
-         (+ (third mapping)
-            (if-let (idx (position (second mapping) (tableau-basis-columns tableau)))
-              (aref (tableau-matrix tableau) idx (tableau-var-count tableau))
-              0)))
-        (negative
-         (+ (third mapping)
-            (if-let (idx (position (second mapping) (tableau-basis-columns tableau)))
-              (- (aref (tableau-matrix tableau) idx (tableau-var-count tableau)))
-              0)))
-        (signed
-         (- (if-let (idx (position (second mapping) (tableau-basis-columns tableau)))
-              (aref (tableau-matrix tableau) idx (tableau-var-count tableau))
-              0)
-            (if-let (idx (position (1+ (second mapping)) (tableau-basis-columns tableau)))
-              (aref (tableau-matrix tableau) idx (tableau-var-count tableau))
-              0)))))))
+      (locally
+        (declare (type var-mapping-entry mapping))
+        (ecase (first mapping)
+          (positive
+           (+ (third mapping)
+              (if-let (idx (position (second mapping) (tableau-basis-columns tableau)))
+                (aref (tableau-matrix tableau) idx (tableau-var-count tableau))
+                0)))
+          (negative
+           (+ (third mapping)
+              (if-let (idx (position (second mapping) (tableau-basis-columns tableau)))
+                (- (aref (tableau-matrix tableau) idx (tableau-var-count tableau)))
+                0)))
+          (signed
+           (- (if-let (idx (position (second mapping) (tableau-basis-columns tableau)))
+                (aref (tableau-matrix tableau) idx (tableau-var-count tableau))
+                0)
+              (if-let (idx (position (1+ (second mapping)) (tableau-basis-columns tableau)))
+                (aref (tableau-matrix tableau) idx (tableau-var-count tableau))
+                0))))))))
 
 
 (declaim (inline tableau-reduced-cost))
@@ -109,7 +115,7 @@ variable from the tableau."
     (unless (eq (first mapping) 'positive)
       (error "~S has no lower bound" var))
     (aref (tableau-matrix tableau)
-          (tableau-constraint-count tableau) (second mapping))))
+          (tableau-constraint-count tableau) (the fixnum (second mapping)))))
 
 ;; TODO implement upper-bound equivalent for reduced-cost
 ;; Requires keeping track of which row is the upperbound for positive vars
@@ -142,6 +148,7 @@ simplex method."
                                     :rehash-threshold 7/10
                                     :rehash-size 5)) ; only bump up size if our numbers end up slightly off
          (num-problem-var-cols num-problem-vars)) ; columns for problem vars
+    (declare (type fixnum num-problem-var-cols))
     (unless constraints
       ;; There aren't any constraints, so simply max/min out each var in a trivial tableau
       (return-from build-tableau
@@ -208,7 +215,7 @@ simplex method."
            (matrix (make-array (list (1+ num-constraints) num-cols)
                               :element-type 'real
                               :initial-element 0))
-           (basis-columns (make-array (list num-constraints) :element-type `(integer 0 ,num-cols)))
+           (basis-columns (make-array (list num-constraints) :element-type 'fixnum))
            (artificial-var-rows nil))
       ;; constraint rows
       (iter (for row from 0 below num-constraints)
@@ -218,6 +225,7 @@ simplex method."
         ;; variables
         (iter (for (var . coef) in (second constraint))
               (for mapping = (gethash var mappings))
+          (declare (type (or null var-mapping-entry) mapping))
           (ecase (first mapping)
             (positive
              (setf (aref matrix row (second mapping)) coef)
@@ -242,6 +250,7 @@ simplex method."
       ;; objective row
       (iter (for (var . coef) in (problem-objective-func problem))
             (for mapping = (gethash var mappings))
+        (declare (type (or null var-mapping-entry) mapping))
         (ecase (first mapping)
           (positive
            (setf (aref matrix num-constraints (second mapping)) (- coef))
@@ -309,17 +318,24 @@ simplex method."
 
 (defun n-pivot-row (tableau entering-col changing-row)
   "Destructively applies a single pivot to the table."
-  (declare (type unsigned-byte entering-col changing-row))
+  (declare (optimize (speed 3))
+           (type fixnum entering-col changing-row))
   (let* ((matrix (tableau-matrix tableau))
          (row-count (array-dimension matrix 0))
          (col-count (array-dimension matrix 1)))
     (let ((row-scale (aref matrix changing-row entering-col)))
-      (iter (for c from 0 below col-count)
+      (iter (declare (iterate:declare-variables)
+                     (optimize (speed 3) (safety 0)))
+            (for (the fixnum c) from 0 below col-count)
         (setf (aref matrix changing-row  c) (/ (aref matrix changing-row c) row-scale))))
-    (iter (for r from 0 below row-count)
+    (iter (declare (iterate:declare-variables)
+                   (optimize (speed 3) (safety 0)))
+          (for (the fixnum r) from 0 below row-count)
       (unless (= r changing-row)
         (let ((scale (aref matrix r entering-col)))
-          (iter (for c from 0 below col-count)
+          (iter (declare (iterate:declare-variables)
+                         (optimize (speed 3) (safety 0)))
+                (for (the fixnum c) from 0 below col-count)
             (decf (aref matrix r c) (* scale (aref matrix changing-row c))))))))
   (setf (aref (tableau-basis-columns tableau) changing-row) entering-col)
   tableau)
