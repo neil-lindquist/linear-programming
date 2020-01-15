@@ -381,7 +381,7 @@ unchanged."
     ((listp tableau)
      (let ((solved-art-tab (n-solve-tableau (first tableau)))
            (main-tab (second tableau)))
-       (unless (fp= 0 (tableau-objective-value solved-art-tab))
+       (unless (fp= 0 (tableau-objective-value solved-art-tab) 64)
          (error 'infeasible-problem-error))
 
        ; Have starting basis, use solve-art-tab to set main-tab to that basis
