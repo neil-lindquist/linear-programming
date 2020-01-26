@@ -54,7 +54,8 @@ package should be used through the interface provided by the
   (basis-columns #() :read-only t :type (simple-array fixnum (*)))
   (var-count 0 :read-only t :type (and fixnum unsigned-byte))
   (constraint-count 0 :read-only t :type (and fixnum unsigned-byte))
-  (var-mapping (make-hash-table :test #'eq) :read-only t :type hash-table))
+  (var-mapping (make-hash-table :test #'eq) :read-only t :type hash-table)
+  (fp-tolerance-factor 16 :read-only t :type real))
 
 (declaim (inline copy-tableau))
 (defun copy-tableau (tableau)
@@ -66,7 +67,8 @@ package should be used through the interface provided by the
                 :basis-columns (copy-array (tableau-basis-columns tableau))
                 :var-count (tableau-var-count tableau)
                 :constraint-count (tableau-constraint-count tableau)
-                :var-mapping (tableau-var-mapping tableau)))
+                :var-mapping (tableau-var-mapping tableau)
+                :fp-tolerance-factor (tableau-fp-tolerance-factor tableau)))
 
 (declaim (inline tableau-objective-value))
 (defun tableau-objective-value (tableau)
@@ -137,7 +139,7 @@ the tableau."
          ,@body))))
 
 
-(defun build-tableau (problem &optional (instance-problem problem))
+(defun build-tableau (problem instance-problem &key (fp-tolerance-factor 16))
   "Creates the tableau from the given linear problem.  If the trivial basis is not
 feasible, instead a list is returned containing the two tableaus for a two-phase
 simplex method."
@@ -181,7 +183,8 @@ simplex method."
                                    :basis-columns basis-cols
                                    :var-count num-problem-vars
                                    :constraint-count num-problem-vars
-                                   :var-mapping mappings))))
+                                   :var-mapping mappings
+                                   :fp-tolerance-factor fp-tolerance-factor))))
 
 
     (iter (for var in-vector (problem-vars problem))
@@ -267,7 +270,8 @@ simplex method."
                                         :basis-columns basis-columns
                                         :var-count (1- num-cols)
                                         :constraint-count num-constraints
-                                        :var-mapping mappings))
+                                        :var-mapping mappings
+                                        :fp-tolerance-factor fp-tolerance-factor))
             (art-tableau (when artificial-var-rows
                            (let* ((num-art (length artificial-var-rows))
                                   (num-art-cols (+ num-cols num-art))
@@ -304,7 +308,8 @@ simplex method."
                                            :basis-columns art-basis-columns
                                            :var-count (+ num-cols -1 num-art)
                                            :constraint-count num-constraints
-                                           :var-mapping mappings)))))
+                                           :var-mapping mappings
+                                           :fp-tolerance-factor fp-tolerance-factor)))))
         (if art-tableau
           (list art-tableau main-tableau)
           main-tableau)))))
@@ -349,13 +354,15 @@ simplex method."
         (finding i minimizing (aref (tableau-matrix tableau) num-constraints i)
                   into col)
         (finally
-          (return (when (fp< (aref (tableau-matrix tableau) num-constraints col) 0)
+          (return (when (fp< (aref (tableau-matrix tableau) num-constraints col) 0
+                             (tableau-fp-tolerance-factor tableau))
                     col))))
       (iter (for i from 0 below (tableau-var-count tableau))
         (finding i maximizing (aref (tableau-matrix tableau) num-constraints i)
                    into col)
         (finally
-          (return (when (fp> (aref (tableau-matrix tableau) num-constraints col) 0)
+          (return (when (fp> (aref (tableau-matrix tableau) num-constraints col) 0
+                             (tableau-fp-tolerance-factor tableau))
                     col)))))))
 
 (declaim (inline find-pivoting-row))
@@ -363,7 +370,8 @@ simplex method."
   "Gets the column that will leave the basis."
   (let ((matrix (tableau-matrix tableau)))
     (iter (for i from 0 below (tableau-constraint-count tableau))
-      (when (fp< 0 (aref matrix i entering-col))
+      (when (fp< 0 (aref matrix i entering-col)
+                 (tableau-fp-tolerance-factor tableau))
         (finding i minimizing (/ (aref matrix i (tableau-var-count tableau))
                                  (aref matrix i entering-col)))))))
 
@@ -381,7 +389,8 @@ unchanged."
     ((listp tableau)
      (let ((solved-art-tab (n-solve-tableau (first tableau)))
            (main-tab (second tableau)))
-       (unless (fp= 0 (tableau-objective-value solved-art-tab) 64)
+       (unless (fp= 0 (tableau-objective-value solved-art-tab)
+                    (tableau-fp-tolerance-factor solved-art-tab))
          (error 'infeasible-problem-error))
 
        ; Have starting basis, use solve-art-tab to set main-tab to that basis
@@ -436,7 +445,7 @@ that constraint."
       (return var))))
 
 
-(defun build-and-solve (problem extra-constraints)
+(defun build-and-solve (problem extra-constraints &key (fp-tolerance-factor 16))
   "Builds and solves a tableau with the extra constrains added to the problem."
   ;if problem becomes infeasible, just return :infeasible
   (handler-case
@@ -453,21 +462,25 @@ that constraint."
                         :integer-vars (problem-integer-vars problem)
                         :var-bounds (problem-var-bounds problem)
                         :constraints (append extra-constraints
-                                             (problem-constraints problem))))))
+                                             (problem-constraints problem))))
+        :fp-tolerance-factor fp-tolerance-factor))
     (infeasible-problem-error () :infeasible)))
 
 
 
-(defun simplex-solver (problem)
-  "The solver interface function for the simplex backend."
+(defun simplex-solver (problem &rest args)
+  "The solver interface function for the simplex backend.  The `fp-tolerance`
+keyword argument can be used to indicate the tolerance for error on floating
+point comparisons (defaults to 16)."
 
-  (let ((current-best nil)
+  (let ((fp-tolerance-factor (getf args :fp-tolerance 16))
+        (current-best nil)
         (current-solution nil)
         (stack (list '()))
         (comparator (if (eq (problem-type problem) 'max) '< '>)))
     (iter (while stack)
       (let* ((entry (pop stack))
-             (tab (build-and-solve problem entry)))
+             (tab (build-and-solve problem entry :fp-tolerance-factor fp-tolerance-factor)))
            (cond
              ; Reached an infeasible leaf.  Do nothing
              ((eq tab :infeasible))
