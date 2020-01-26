@@ -37,7 +37,8 @@ variable. The default backend is the `simplex-solver` in the
 
 
 (defvar *solver* 'simplex-solver
-  "The function that should be used by solve-problem. The function should take a
+  "The function that should be used by solve-problem (defaults to
+`linear-programming/simplex:simplex-solver`). The function should take a
 problem, and any backend specific keyword arguments and returns some form of
 solution object. The solution object should support the following methods
 `solution-problem`, `solution-objective-value`, `solution-variable`, and
