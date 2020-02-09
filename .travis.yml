@@ -1,5 +1,4 @@
-language: common-lisp
-sudo: false
+language: generic
 
 #from https://github.com/roswell/roswell/wiki/Travis-CI
 
@@ -17,7 +16,7 @@ env:
   global:
     - PATH=~/.roswell/bin:$PATH
     - ROSWELL_INSTALL_DIR=$HOME/.roswell
-  matrix:
+  jobs:
     - LISP=sbcl-bin COVERALLS=true DOCS=true
     - LISP=abcl
     - LISP=ecl
@@ -26,7 +25,7 @@ env:
     - LISP=cmucl
 #    - LISP=clisp #fails to download
 
-matrix:
+jobs:
   fast_finish: true
   include:
     - os: osx
@@ -58,7 +57,7 @@ before_deploy:
 deploy:
   provider: pages
   skip_cleanup: true
-  github_token: $GITHUB_TOKEN
+  token: $GITHUB_TOKEN
   keep_history: true
   local_dir: docs-bin
   on:
