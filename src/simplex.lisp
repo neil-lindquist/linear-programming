@@ -55,7 +55,7 @@ package should be used through the interface provided by the
   (var-count 0 :read-only t :type (and fixnum unsigned-byte))
   (constraint-count 0 :read-only t :type (and fixnum unsigned-byte))
   (var-mapping (make-hash-table :test #'eq) :read-only t :type hash-table)
-  (fp-tolerance-factor 16 :read-only t :type real))
+  (fp-tolerance-factor 1024 :read-only t :type real))
 
 (declaim (inline copy-tableau))
 (defun copy-tableau (tableau)
@@ -139,11 +139,10 @@ the tableau."
          ,@body))))
 
 
-(defun build-tableau (problem instance-problem &key (fp-tolerance-factor 16))
+(defun build-tableau (problem instance-problem &key (fp-tolerance-factor 1024))
   "Creates the tableau from the given linear problem.  If the trivial basis is not
 feasible, instead a list is returned containing the two tableaus for a two-phase
 simplex method."
-
   (let* ((constraints (problem-constraints instance-problem))
          (num-problem-vars (length (problem-vars problem)))
          (mappings (make-hash-table :size (ceiling num-problem-vars 7/10)
@@ -355,14 +354,14 @@ simplex method."
                   into col)
         (finally
           (return (when (fp< (aref (tableau-matrix tableau) num-constraints col) 0
-                             (tableau-fp-tolerance-factor tableau))
+                             (/ (tableau-fp-tolerance-factor tableau) 8))
                     col))))
       (iter (for i from 0 below (tableau-var-count tableau))
         (finding i maximizing (aref (tableau-matrix tableau) num-constraints i)
                    into col)
         (finally
           (return (when (fp> (aref (tableau-matrix tableau) num-constraints col) 0
-                             (tableau-fp-tolerance-factor tableau))
+                             (/ (tableau-fp-tolerance-factor tableau) 8))
                     col)))))))
 
 (declaim (inline find-pivoting-row))
@@ -371,7 +370,7 @@ simplex method."
   (let ((matrix (tableau-matrix tableau)))
     (iter (for i from 0 below (tableau-constraint-count tableau))
       (when (fp< 0 (aref matrix i entering-col)
-                 (tableau-fp-tolerance-factor tableau))
+                 (/ (tableau-fp-tolerance-factor tableau) 2))
         (finding i minimizing (/ (aref matrix i (tableau-var-count tableau))
                                  (aref matrix i entering-col)))))))
 
@@ -445,7 +444,7 @@ that constraint."
       (return var))))
 
 
-(defun build-and-solve (problem extra-constraints &key (fp-tolerance-factor 16))
+(defun build-and-solve (problem extra-constraints &key (fp-tolerance-factor 1024))
   "Builds and solves a tableau with the extra constrains added to the problem."
   ;if problem becomes infeasible, just return :infeasible
   (handler-case
@@ -471,9 +470,9 @@ that constraint."
 (defun simplex-solver (problem &rest args)
   "The solver interface function for the simplex backend.  The `fp-tolerance`
 keyword argument can be used to indicate the tolerance for error on floating
-point comparisons (defaults to 16)."
+point comparisons (defaults to 1024)."
 
-  (let ((fp-tolerance-factor (getf args :fp-tolerance 16))
+  (let ((fp-tolerance-factor (getf args :fp-tolerance 1024))
         (current-best nil)
         (current-solution nil)
         (stack (list '()))
