@@ -284,7 +284,7 @@
 
   (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
                                        (<= (+ (* 2 x) y) 4)
-                                       (<= (+ y (* -1 z)))))
+                                       (<= (+ y (* -1 z)) 4)))
          (tableau (build-tableau problem problem)))
     (signals unbounded-problem-error (solve-tableau tableau))))
 
