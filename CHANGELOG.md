@@ -1,3 +1,7 @@
+## 2.1.0
+* Add configuration for tolerance of floating point round off errors
+* Fix some bugs with the handling of floating point round off error tolerances
+
 ## 2.0.1
 * Fix errors when using floats
 * Fix infeasible problems not correctly raising errors solver
