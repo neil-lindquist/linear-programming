@@ -1,3 +1,10 @@
+## 2.2.0
+* Add support for writing problems in standard format
+* Change the default objective variable to be uppercase
+* Fix an error when a constraint does not have an explicit constant
+* Fix an issue with a specific `parsing-error` being throw incorrectly
+* Fix bugs with variables not bounded between 0 and infinity
+
 ## 2.1.0
 * Add configuration for tolerance of floating point round off errors
 * Fix some bugs with the handling of floating point round off error tolerances
