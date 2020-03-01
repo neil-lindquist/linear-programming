@@ -16,7 +16,8 @@
                 #:ub-min)
   (:export #:read-sexp
            #:write-sexp
-           #:read-mps)
+           #:read-mps
+           #:write-standard-format)
   (:documentation "Handles reading and writing problems to external formats."))
 
 (in-package :linear-programming/external-formats)
@@ -345,3 +346,60 @@ boundaries are supported."
                                                 :integer-vars int-vars
                                                 :var-bounds bounds
                                                 :constraints constraints))))
+
+(defun print-linear-expression (stream expression &optional (aesthetic-variable-names-p t))
+  (iter (for (var . coef) in expression)
+    (if (first-iteration-p)
+      (when (< 0 coef)
+        (format stream "-"))
+      (format stream (if (< 0 coef) " - " " + ")))
+    (unless (or (= coef 1) (= coef -1))
+      (format stream "~A*" (abs coef)))
+    (format stream "~:[~S~;~A~]" aesthetic-variable-names-p var)))
+
+(defun write-standard-format (stream problem &key (unicodep t) (aesthetic-variable-names-p t))
+  "Writes a problem to the given stream in human readable, standard notation.  The
+`unicodep` argument controls whether to print comparisons as unicode or ascii.
+The `aesthetic-variable-names-p` argument controls whether variable names are
+printed aesthetically."
+  ;;; Objective function
+  (format stream "~A ~:[~S~;~A~] = "
+          (if (eq 'max (problem-type problem)) "Maximize" "Minimize")
+          aesthetic-variable-names-p
+          (problem-objective-var problem))
+  (print-linear-expression stream (problem-objective-func problem) aesthetic-variable-names-p)
+
+  ;;; Constraints
+  (format stream "~%Subject to:")
+  ;; Basic constraints
+  (iter (for constraint in (problem-constraints problem))
+    (format stream "~12,0T")
+    (print-linear-expression stream (second constraint) aesthetic-variable-names-p)
+    (format stream " ~A "
+            (ecase (first constraint)
+              (<= (if unicodep "≤" "<"))
+              (>= (if unicodep "≥" ">"))
+              (= "=")))
+    (format stream "~A~%" (third constraint)))
+
+  ;; bounds
+  (iter (with bounds = (problem-var-bounds problem))
+        (for var in-vector (problem-vars problem))
+        (for bound = (or (cdr (assoc var bounds)) '(0 . nil)))
+    (when (car bound)
+      (if (= 0 (car bound))
+        (collect var into non-negative at beginning)
+        (format stream "~12,0T~:[~S~;~A~] ~:[>~;≥~] ~A~%"
+                aesthetic-variable-names-p var unicodep (car bound))))
+    (when (cdr bound)
+      (format stream "~12,0T~:[~S~;~A~] ~:[<~;≤~] ~A~%"
+              aesthetic-variable-names-p var unicodep (cdr bound)))
+    (finally
+      (when non-negative
+        (format stream "~12,0T~:[~{~S~^, ~}~;~{~A~^, ~}~] ~:[>~;≥~] 0~%"
+                aesthetic-variable-names-p non-negative unicodep))))
+
+  ;; int constraints
+  (when (problem-integer-vars problem)
+    (format stream "~12,0T~:[~{~S~^, ~}~;~{~A~^, ~}~] integer~%"
+            aesthetic-variable-names-p (problem-integer-vars problem))))
