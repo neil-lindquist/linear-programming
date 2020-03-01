@@ -165,7 +165,7 @@ inequalities and a list of integer variables."
                       objective-exp))
          (objective-var (if objective-var-p
                           (second objective-exp)
-                          (gensym "z"))))
+                          (gensym "Z"))))
     (when (and (not objective-var-p)
                (listp (second objective))
                (eq (first (second objective)) '=))
