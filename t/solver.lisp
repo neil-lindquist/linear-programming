@@ -5,6 +5,8 @@
         :linear-programming-test/base
         :linear-programming/problem
         :linear-programming/solver)
+  (:import-from :linear-programming/conditions
+                #:infeasible-problem-error)
   (:export #:solver))
 
 (in-package :linear-programming-test/solver)
@@ -30,6 +32,13 @@
     (is (= 1/2 (solution-reduced-cost solution 'z))))
 
   ; Integer problem
+
+  (signals infeasible-problem-error (solve-problem
+                                     (make-linear-problem (max (+ x y))
+                                                          (<= y x)
+                                                          (>= y (* 1.2 (+ x .9)))
+                                                          (integer x y))))
+
   ; Rock of Gibralter problem
   (let* ((problem (make-linear-problem (max (+ (* 240 x) (* 120 y)))
                                        (<= (+ x y) 5)

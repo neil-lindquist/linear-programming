@@ -256,10 +256,10 @@ simplex method."
         (ecase (first mapping)
           (positive
            (setf (aref matrix num-constraints (second mapping)) (- coef))
-           (decf (aref matrix num-constraints (1- num-cols)) (* coef (third mapping))))
+           (incf (aref matrix num-constraints (1- num-cols)) (* coef (third mapping))))
           (negative
            (setf (aref matrix num-constraints (second mapping)) coef)
-           (decf (aref matrix num-constraints (1- num-cols)) (* coef (third mapping))))
+           (incf (aref matrix num-constraints (1- num-cols)) (* coef (third mapping))))
           (signed
            (setf (aref matrix num-constraints (second mapping)) (- coef)
                  (aref matrix num-constraints (1+ (second mapping))) coef))))
