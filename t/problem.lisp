@@ -52,7 +52,8 @@
   (let ((problem (make-linear-problem (max (+ x (* 4 y) (* 8 z)))
                                       (<= (+ (* 2 x) y) 8)
                                       (<= (+ y z) 7)
-                                      (>= (+ x z) 1))))
+                                      (>= (+ x z) 1)
+                                      (<= x y))))
     (is (typep problem 'problem))
     (is (eq 'max (problem-type problem)))
     (is (typep (problem-vars problem) 'vector))
@@ -67,7 +68,8 @@
                   (problem-var-bounds problem)))
    (is (simple-linear-constraint-set-equal '((<= ((x . 2) (y . 1)) 8)
                                              (<= ((y . 1) (z . 1)) 7)
-                                             (>= ((x . 1) (z . 1)) 1))
+                                             (>= ((x . 1) (z . 1)) 1)
+                                             (<= ((x . 1) (y . -1)) 0))
                                        (problem-constraints problem))))
 
   (let ((problem (make-linear-problem (max (+ x (* 4 y) (* 8 z)))
@@ -150,6 +152,16 @@
                                         (problem-constraints problem))))
 
   ; free variable
+  (signals parsing-error
+           (make-linear-problem (min (+ x (* 4 y) (* 8 z)))
+                                (<= (+ x y) 8)
+                                (<= (+ y z) 7)
+                                (bounds (x y))))
+  (signals parsing-error
+           (make-linear-problem (min (+ x (* 4 y) (* 8 z)))
+                                (<= (+ x y) 8)
+                                (<= (+ y z) 7)
+                                (bounds (1 x y))))
   (let ((problem (make-linear-problem (max (= total (+ x (* -4 y) (* 8 z))))
                                       (<= (+ x y) 8)
                                       (<= (+ (* -1 y) z) 7)
