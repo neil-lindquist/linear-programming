@@ -109,7 +109,7 @@ inequalities and a list of integer variables."
               (for lhs previous rhs initially (second constraint))
           (let* ((lin-exp (sum-linear-expressions
                             lhs (scale-linear-expression rhs -1)))
-                 (const (- (cdr (assoc '+constant+ lin-exp :test 'eq))))
+                 (const (- (cdr (or (assoc '+constant+ lin-exp :test 'eq) '(+constant+ . 0)))))
                  (sum (delete '+constant+ lin-exp :test 'eq :key 'car)))
             (unless const
               (setf const 0))
