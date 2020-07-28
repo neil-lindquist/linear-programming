@@ -76,6 +76,13 @@ inequalities and a list of integer variables."
       ((integer)
        (unioning (rest expr)
                  into integer))
+      ((binary)
+       (unioning (rest expr)
+                 into integer)
+       (appending (mapcar (lambda (var)
+			    (cons var '(0 . 1)))
+			  (rest expr))
+		  into bounds))
       ((bounds)
        (appending (mapcar (lambda (entry)
                             (cond
