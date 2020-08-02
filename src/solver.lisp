@@ -68,8 +68,10 @@ arguments are passed to the solver function."
     (tableau-variable solution variable)))
 
 (defgeneric solution-reduced-cost (solution variable)
-  (:documentation "Gets the reduced cost (i.e. the shadow price for the lower bound) of the
-specified variable.")
+  (:documentation "Gets the reduced cost of the specified variable.  This is the
+amount that the objective coefficient for the variable must increase or
+decrease, for maximization and minimization problems respectively, before the
+given variable appears in an optimal solution.")
   (:method ((solution tableau) variable)
     (tableau-reduced-cost solution variable)))
 
