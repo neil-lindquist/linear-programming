@@ -82,8 +82,10 @@ solution object. The solution object should support the following methods
 `solution-reduced-cost`.
 
 <a name="generic-linear-programming/solver:solution-reduced-cost"></a>**GENERIC** - SOLUTION-REDUCED-COST (SOLUTION VARIABLE)  
-Gets the reduced cost (i.e. the shadow price for the lower bound) of the
-specified variable.
+Gets the reduced cost of the specified variable.  This is the
+amount that the objective coefficient for the variable must increase or
+decrease, for maximization and minimization problems respectively, before the
+given variable appears in an optimal solution.
 
 <a name="generic-linear-programming/solver:solution-objective-value"></a>**GENERIC** - SOLUTION-OBJECTIVE-VALUE (SOLUTION)  
 Gets the value of the objective function.
