@@ -10,10 +10,11 @@
 
 
 This is a Common Lisp library for solving linear programming problems.
-It is implemented in pure Common Lisp, instead of calling a high performance library.
-This has the advantage of being dependent on only a couple community standard libraries (ASDF, Alexandria, Iterate).
-However, this limits the performance of solving larger problems.
-If there is interest in a high performance backend, please open an issue; the library is setup to support a high performance backend, but there has yet to be any interest in it.
+It's designed to provide a high-level and ergonomic API for specifying linear programming problems as lisp expressions.
+
+The core library is implemented purely in Common Lisp with only a few community-standard libraries as dependencies (ASDF, Alexandria, Iterate).
+However, the solver is designed to support alternative backends without any change to the user's code.
+Currently, there is a [backend for the GNU Linear Programming Kit (GLPK)](https://github.com/neil-lindquist/linear-programming-glpk).
 
 ## Installation
 The linear-programming library is avalible in both the main Quicklisp distribution and Ultralisp, so it can loaded with with `(ql:quickload :linear-programming)`.
