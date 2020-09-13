@@ -29,7 +29,7 @@ jobs:
   fast_finish: true
   include:
     - os: osx
-      env: LISP=sbcl-bin
+      env: LISP=sbcl/2.0.6
     - os: osx
       env: LISP=ccl-bin
 
