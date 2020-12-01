@@ -220,7 +220,8 @@ simplex method."
            (basis-columns (make-array (list num-constraints) :element-type 'fixnum))
            (artificial-var-rows nil))
       ;; constraint rows
-      (iter (for row from 0 below num-constraints)
+      (iter (with col-offset = 0)
+            (for row from 0 below num-constraints)
             (for constraint in (problem-constraints instance-problem))
         ;; rhs
         (setf (aref matrix row (1- num-cols)) (third constraint))
@@ -240,11 +241,13 @@ simplex method."
                    (aref matrix row (1+ (second mapping))) (- coef)))))
         ;; slack
         (case (first constraint)
-          (<= (setf (aref matrix row (+ num-problem-var-cols row)) 1
-                    (aref basis-columns row) (+ num-problem-var-cols row)))
+          (<= (setf (aref matrix row (+ num-problem-var-cols col-offset)) 1
+                    (aref basis-columns row) (+ num-problem-var-cols col-offset))
+              (incf col-offset))
           (>= (push row artificial-var-rows)
-              (setf (aref matrix row (+ num-problem-var-cols row)) -1
-                    (aref basis-columns row) num-cols))
+              (setf (aref matrix row (+ num-problem-var-cols col-offset)) -1
+                    (aref basis-columns row) num-cols)
+              (incf col-offset))
           (= (push row artificial-var-rows)
              (setf (aref basis-columns row) num-cols))
           (t (error 'parsing-error
