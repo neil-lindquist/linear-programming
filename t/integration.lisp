@@ -79,7 +79,7 @@
     ;; Note that there are multiple solutions
     (is (fp= z (+ b (* 0.6861807 a))))))
 
-(test ilp-bug
+(test ilp-bugs
   (with-solved-problem
          ((min w)
           (INTEGER x T185 E T184 D T183 C T182 B T181 A T180 w)
@@ -96,4 +96,12 @@
               (* 141 T117) (* 156 T126) (* 185 T160) (* 111 T162) (* 141 T171)
               (* 10 T180) (* 1 T181))
            0))
-    (is (> w 0))))
+    (is (= 31 w)))
+
+  (with-solved-problem ((min (+ x y z))
+                        (integer x y z)
+                        (>= (+ x y (* 9 z)) 30/16)
+                        (>= (+ (* 3/2 x) (* 78/64 y) z) 32/11))
+    (is (= 2 x))
+    (is (= 0 y))
+    (is (= 0 z))))

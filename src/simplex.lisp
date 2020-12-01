@@ -395,20 +395,42 @@ unchanged."
                     (tableau-fp-tolerance-factor solved-art-tab))
          (error 'infeasible-problem-error))
 
-       ; Have starting basis, use solve-art-tab to set main-tab to that basis
+       ;; Have starting basis, use solve-art-tab to set main-tab to that basis
        (let ((main-matrix (tableau-matrix main-tab))
              (art-matrix (tableau-matrix solved-art-tab))
+             (art-basis (tableau-basis-columns solved-art-tab))
              (num-vars (tableau-var-count main-tab))
+             (num-art-vars (tableau-var-count solved-art-tab))
              (num-constraints (tableau-constraint-count main-tab)))
-         ; Copy tableau coefficients/RHS
+
+         ;; Check that all artificial variables are out of the basis
+         ;; Degeneracy can allow an artificial variable to be zero, but still in the basis
+         (iter (for basis-col in-vector (tableau-basis-columns solved-art-tab))
+               (for i from 0)
+           (when (>= basis-col num-vars)
+             ;; Need to find non-basis variable with a nonzero in this row
+             (when (/= 0 (aref art-matrix i num-art-vars))
+               (error (format nil "Artificial variable ~S still non-zero" basis-col)))
+             (let ((new-col -1))
+               (iter (for j from 0 below num-vars)
+                 (when (and (/= 0 (aref art-matrix i j))
+                            (iter (for new-col in-vector art-basis)
+                              (always (/= new-col j))))
+                   (setf new-col j)
+                   (return)))
+               (when (= new-col -1)
+                 (error "Artificial variable still in basis and cannot be replaced"))
+               (n-pivot-row solved-art-tab new-col i))))
+
+         ;; Copy tableau coefficients/RHS
          (iter (for row from 0 below num-constraints)
            (iter (for col from 0 below num-vars)
              (setf (aref main-matrix row col) (aref art-matrix row col)))
            (setf (aref main-matrix row num-vars)
-                 (aref art-matrix row (tableau-var-count solved-art-tab))))
+                 (aref art-matrix row num-art-vars)))
 
-         ; Update basis columns and objective row to match
-         (iter (for basis-col in-vector (tableau-basis-columns solved-art-tab))
+         ;; Update basis columns and objective row to match
+         (iter (for basis-col in-vector art-basis)
                (for i from 0)
            (setf (aref (tableau-basis-columns main-tab) i) basis-col)
            (let ((scale (aref main-matrix num-constraints basis-col)))
