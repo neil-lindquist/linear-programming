@@ -356,7 +356,17 @@
     (is (= 28 (tableau-variable tableau 'w)))
     (is (= 1 (tableau-variable tableau 'x)))
     (is (= 6 (tableau-variable tableau 'y)))
-    (is (= 1 (tableau-variable tableau 'z)))))
+    (is (= 1 (tableau-variable tableau 'z))))
+
+  (let* ((problem (make-linear-problem (max (= w (+ x (* 4 y) (* 3 z))))
+                                       (<= (+ (* 2 x) y) 8)
+                                       (<= (+ y z) 7)
+                                       (bounds (0 y 5))))
+         (tableau (n-solve-tableau (build-tableau problem problem))))
+    (is (= 55/2 (tableau-variable tableau 'w)))
+    (is (= 3/2 (tableau-variable tableau 'x)))
+    (is (= 5 (tableau-variable tableau 'y)))
+    (is (= 2 (tableau-variable tableau 'z)))))
 
 
 (test tableau-reduced-cost

@@ -222,7 +222,7 @@ simplex method."
       ;; constraint rows
       (iter (with col-offset = 0)
             (for row from 0 below num-constraints)
-            (for constraint in (problem-constraints instance-problem))
+            (for constraint in constraints)
         ;; rhs
         (setf (aref matrix row (1- num-cols)) (third constraint))
         ;; variables
