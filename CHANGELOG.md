@@ -1,3 +1,8 @@
+## 2.2.1
+* Fix bug with equality constraints in simplex backend (#7)
+* Fix handling of artificial variables remaining in the basis for 2-phase simplex
+* Fix bounds error in simplex backend (#8)
+
 ## 2.2.0
 * Add support for writing problems in standard format
 * Change the default objective variable to be uppercase
