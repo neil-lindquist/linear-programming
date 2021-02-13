@@ -65,9 +65,9 @@ Alternatively, the `with-solution-variables` and `with-solved-problem` macros si
 ```common-lisp
 (with-solution-variables (w x y z) solution
   (format t "Objective value solution: ~A~%" w)
-  (format t "x = ~A (reduced cost: ~A)~%" x (reduced-cost solution 'x))
-  (format t "y = ~A (reduced cost: ~A)~%" y (reduced-cost solution 'y))
-  (format t "z = ~A (reduced cost: ~A)~%" z (reduced-cost solution 'z)))
+  (format t "x = ~A (reduced cost: ~A)~%" x (reduced-cost x))
+  (format t "y = ~A (reduced cost: ~A)~%" y (reduced-cost y))
+  (format t "z = ~A (reduced cost: ~A)~%" z (reduced-cost z)))
 
 ;; ==>
 ;; Objective value solution: 57/2
@@ -80,9 +80,9 @@ Alternatively, the `with-solution-variables` and `with-solved-problem` macros si
                       (<= (+ (* 2 x) y) 8)
                       (<= (+ y z) 7))
   (format t "Objective value solution: ~A~%" w)
-  (format t "x = ~A (reduced cost: ~A)~%" x (reduced-cost solution 'x))
-  (format t "y = ~A (reduced cost: ~A)~%" y (reduced-cost solution 'y))
-  (format t "z = ~A (reduced cost: ~A)~%" z (reduced-cost solution 'z)))
+  (format t "x = ~A (reduced cost: ~A)~%" x (reduced-cost x))
+  (format t "y = ~A (reduced cost: ~A)~%" y (reduced-cost y))
+  (format t "z = ~A (reduced cost: ~A)~%" z (reduced-cost z)))
 
 ;; ==>
 ;; Objective value solution: 57/2
