@@ -17,7 +17,7 @@ environment:
 
 install:
   - pacman -S unzip --noconfirm
-  - bash -lc "curl -L https://raw.githubusercontent.com/roswell/roswell/release/scripts/install-for-ci.sh | sh"
+  - bash -lc "curl -L https://raw.githubusercontent.com/roswell/roswell/v20.06.14.107/scripts/install-for-ci.sh | sh"
   - ros install neil-lindquist/ci-utils
   - bash -lc "asdf-register-project"  #Add the build directory to asdf's source registry
 
