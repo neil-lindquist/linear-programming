@@ -17,7 +17,8 @@ env:
     - PATH=~/.roswell/bin:$PATH
     - ROSWELL_INSTALL_DIR=$HOME/.roswell
   jobs:
-    - LISP=sbcl-bin COVERALLS=true DOCS=true
+    # CL-Coveralls is temporarly broken
+    - LISP=sbcl-bin DOCS=true # COVERALLS=true
     - LISP=abcl
     - LISP=ecl
     - LISP=alisp
@@ -30,8 +31,10 @@ jobs:
   include:
     - os: osx
       env: LISP=sbcl-bin
+      osx_image: xcode12.2
     - os: osx
       env: LISP=ccl-bin
+      osx_image: xcode12.2
 
 cache:
   directories:
