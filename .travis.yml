@@ -17,7 +17,7 @@ env:
     - PATH=~/.roswell/bin:$PATH
     - ROSWELL_INSTALL_DIR=$HOME/.roswell
   jobs:
-    - LISP=sbcl-bin COVERALLS=true DOCS=true
+    - LISP=sbcl-bin COVERALLS=true DOCS=true COVERALLS_REPO_TOKEN=ignore
     - LISP=abcl
     - LISP=ecl
     - LISP=alisp
