@@ -219,7 +219,20 @@
    (is (set-equal '()
                   (problem-var-bounds problem)))
    (is (simple-linear-constraint-set-equal '((<= ((x . 1) (y . 1)) 8) (<= ((y . -1) (z . 1)) 7))
-                                       (problem-constraints problem)))))
+                                       (problem-constraints problem)))
+
+
+  ; Deprecation warnings
+  ;; > and < are deprecated since they are implemented as alises for >= and <=
+  ;; which can mislead users.  (See issue #10).
+  (signals warning
+           (make-linear-problem (min (+ x (* 4 y) (* 8 z)))
+                                (< (+ x y) 8)
+                                (< (+ y z) 7)))
+  (signals warning
+           (make-linear-problem (max (+ x (* 4 y)))
+                                (<= (+ (* 2 x) y) 8)
+                                (> (+ x (* 3 y)) 1)))))
 
 (test parse-linear-problem
   (let ((problem (parse-linear-problem '(max (+ x (* 4 y) (* 8 z)))

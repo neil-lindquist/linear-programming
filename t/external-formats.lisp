@@ -228,7 +228,7 @@
 
 
 (test write-standard-format
-  (let* ((problem (make-linear-problem (max (+ x y)) (< (+ (* 2 x) y) 5)))
+  (let* ((problem (make-linear-problem (max (+ x y)) (<= (+ (* 2 x) y) 5)))
          (output (with-output-to-string (stream)
                    (write-standard-format stream problem))))
     (is (string-equal "Maximize " (subseq output 0 9)))
@@ -237,7 +237,7 @@
     (is (search "≤" output))
     (is (not (search "<" output)))
     (is (not (search "integer" output :test #'char-equal))))
-  (let* ((problem (make-linear-problem (max (+ x y)) (< (+ (* 2 x) y) 5)))
+  (let* ((problem (make-linear-problem (max (+ x y)) (<= (+ (* 2 x) y) 5)))
          (output (with-output-to-string (stream)
                    (write-standard-format stream problem :unicodep nil))))
     (is (string-equal "Maximize " (subseq output 0 9)))
@@ -246,7 +246,7 @@
     (is (not (search "≤" output)))
     (is (search "<" output)))
 
-  (let* ((problem (make-linear-problem (max (+ #:x #:y)) (< (+ (* 2 #:x) #:y) 5)))
+  (let* ((problem (make-linear-problem (max (+ #:x #:y)) (<= (+ (* 2 #:x) #:y) 5)))
          (output (with-output-to-string (stream)
                    (write-standard-format stream problem :aesthetic-variable-names-p t))))
     (is (string-equal "Maximize " (subseq output 0 9)))
@@ -254,7 +254,7 @@
     (is (not (search "#:X" output)))
     (is (search "Y" output))
     (is (not (search "#:Y" output))))
-  (let* ((problem (make-linear-problem (max (+ #:x #:y)) (< (+ (* 2 #:x) #:y) 5)))
+  (let* ((problem (make-linear-problem (max (+ #:x #:y)) (<= (+ (* 2 #:x) #:y) 5)))
          (output (with-output-to-string (stream)
                    (write-standard-format stream problem :aesthetic-variable-names-p nil))))
     (is (string-equal "Maximize " (subseq output 0 9)))
@@ -263,7 +263,7 @@
     (is (not (search " Y" output)))
     (is (search "#:Y" output)))
 
-  (let* ((problem (make-linear-problem (max (+ x y)) (< (+ (* 2 x) y) 5) (integer x y)))
+  (let* ((problem (make-linear-problem (max (+ x y)) (<= (+ (* 2 x) y) 5) (integer x y)))
          (output (with-output-to-string (stream)
                    (write-standard-format stream problem))))
     (is (string-equal "Maximize " (subseq output 0 9)))
