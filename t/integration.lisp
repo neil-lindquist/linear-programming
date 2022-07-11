@@ -105,3 +105,20 @@
     (is (= 2 x))
     (is (= 0 y))
     (is (= 0 z))))
+
+(test variable-bounds-bug
+  ; from https://github.com/neil-lindquist/linear-programming/issues/11
+  (with-solved-problem
+          ((min (= w (+ x y)))
+           (>= x 1.0)
+           (>= y 1.0)
+           (>= (+ x (* 2.0 y)) 2.0))
+    (is (= 1.0 x))
+    (is (= 1.0 y))
+
+    (with-solved-problem
+            ((min (= w (+ x y)))
+             (>= x 1.0)
+             (>= y 1.0))
+      (is (= 1.0 x))
+      (is (= 1.0 y)))))

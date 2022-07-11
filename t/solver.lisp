@@ -65,7 +65,22 @@
     (is (= 3 (solution-variable solution 'x)))
     (is (= 1 (solution-variable solution 'y)))
     (is (= 0 (solution-reduced-cost solution 'x)))
-    (is (= 0 (solution-reduced-cost solution 'y)))))
+    (is (= 0 (solution-reduced-cost solution 'y)))
+
+    ; test variable bounds
+    (let* ((problem (make-linear-problem (max (+ x (* 4 y) (* 3 z)))
+                                         (<= (+ (* 2 x) y) 8)
+                                         (<= (+ y z) 7)
+                                         (>= x 1)))
+           (solution (solve-problem problem)))
+      (is (eq problem (solution-problem solution)))
+      (is (= 28 (solution-objective-value solution)))
+      (is (= 1 (solution-variable solution 'x)))
+      (is (= 6 (solution-variable solution 'y)))
+      (is (= 1 (solution-variable solution 'z)))
+      (is (= 1 (solution-reduced-cost solution 'x)))
+      (is (= 0 (solution-reduced-cost solution 'y)))
+      (is (= 0 (solution-reduced-cost solution 'z))))))
 
 (test solution-variable
   (declare (notinline solution-variable))

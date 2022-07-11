@@ -239,6 +239,17 @@ simplex method."
             (signed
              (setf (aref matrix row (second mapping)) coef
                    (aref matrix row (1+ (second mapping))) (- coef)))))
+        ;; Ensure rhs is positive
+        (when (and (< (aref matrix row (1- num-cols)) 0))
+          (iter (for col from 0 below num-cols)
+            (setf (aref matrix row col) (- (aref matrix row col))))
+          (setf constraint
+                (cons (case (first constraint)
+                        (<= '>=)
+                        (>= '<=)
+                        (=  '=)
+                        (t (first constraint)))
+                      (rest constraint))))
         ;; slack
         (case (first constraint)
           (<= (setf (aref matrix row (+ num-problem-var-cols col-offset)) 1
