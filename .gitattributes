@@ -1,0 +1,4 @@
+
+# ensure line endings are preserved for the mps test files
+t/data/simple-problem.mps text eol=lf
+t/data/simple-problem-crlf.mps text eol=crlf

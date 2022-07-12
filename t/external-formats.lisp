@@ -224,8 +224,26 @@
       (is (set-equal '((z . (0 . 4)) (|w| . (0 . 1)) (x . (nil . nil)))
                      (problem-var-bounds problem)))
       (is (simple-linear-constraint-set-equal '((<= ((x . 3) (y . 1)) 8) (<= ((y . 1) (z . 2)) 10) (<= ((|w| . -1) (x . -2) (z . 1)) 1))
-                     (problem-constraints problem))))))
+                     (problem-constraints problem))
 
+       (with-open-file (stream (merge-pathnames "t/data/simple-problem-crlf.mps"
+                                                (asdf:system-source-directory :linear-programming-test))
+                               :direction :input
+                               :external-format :utf-8)
+         (let ((problem (read-mps stream 'max)))
+           (is (typep problem 'problem))
+           (is (eq 'max (problem-type problem)))
+           (is-true (null (symbol-package (problem-objective-var problem))))
+           (is (set-equal '(x y z)
+                          (map 'list #'identity (problem-vars problem))))
+           (is (set-equal '((x . 1) (y . 4) (z . 8))
+                          (problem-objective-func problem)))
+           (is (set-equal '()
+                          (problem-integer-vars problem)))
+           (is (set-equal '()
+                          (problem-var-bounds problem)))
+           (is (simple-linear-constraint-set-equal '((<= ((x . 3) (y . 1)) 8) (<= ((y . 1) (z . 2)) 7))
+                                               (problem-constraints problem)))))))))
 
 (test write-standard-format
   (let* ((problem (make-linear-problem (max (+ x y)) (<= (+ (* 2 x) y) 5)))

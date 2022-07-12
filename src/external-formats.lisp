@@ -167,9 +167,9 @@ boundaries are supported."
                    (:raw
                      raw)))))
 
-      (iter (for line = (read-line stream))
+      (iter (for line = (string-right-trim '(#\Space #\Return) (read-line stream)))
         (if-let (header-card (unless (char= #\space (aref line 0))
-                               (string-downcase (string-right-trim " " (substring line 0 15)))))
+                               (string-downcase (substring line 0 15))))
           (cond
             ;; do nothing on comments
             ((char= (aref header-card 0) #\*))
