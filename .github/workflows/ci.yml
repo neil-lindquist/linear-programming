@@ -24,6 +24,9 @@ jobs:
     steps:
       # This action checks out our code in the working directory
       - uses: actions/checkout@v2
+      # Create LISP environement variable for 40ants/setup-lisp
+      - name: Set LISP env var
+        run: echo "LISP=${{ matrix.lisp }}" >> $GITHUB_ENV
       # This action installs roswell and a few other utilities such as qlot
       - uses: 40ants/setup-lisp@v2
 
