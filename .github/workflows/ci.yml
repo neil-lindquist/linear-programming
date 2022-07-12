@@ -30,6 +30,11 @@ jobs:
       # This action installs roswell and a few other utilities such as qlot
       - uses: 40ants/setup-lisp@v2
 
+      - name: Configure Coverage
+        # Only gather code coverage on Linux-SBCL
+        if: matrix.os == 'ubuntu-latest' && matrix.lisp == 'sbcl-bin'
+        run: echo "COVERALLS=true" >> $GITHUB_ENV
+
       # These steps run our tests
       # Windows needs to be run with the msys2 shell due to how roswell is installed
       - name: Run tests (Non-Windows)
