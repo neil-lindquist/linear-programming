@@ -54,7 +54,7 @@ jobs:
           ros install neil-lindquist/doc-site-generator
           copy-site-base docs docs-bin
           echo 'The documentation page for the linear-programming Common Lisp library."' | make-gh-page README.md docs-bin/index.md
-          ./generate-API-docs.ros
+          script/generate-API-docs.ros
 
       - name: Deploy Docs
         if: github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.os == 'ubuntu-latest' && matrix.lisp == 'sbcl-bin'
