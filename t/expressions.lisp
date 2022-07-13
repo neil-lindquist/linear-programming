@@ -15,6 +15,20 @@
   :description "The suite to test linear-programming/expressions")
 (in-suite expressions)
 
+(test linear-constant-p
+  (declare (notinline linear-programming/expressions::linear-constant-p))
+  (is-true (linear-programming/expressions::linear-constant-p
+            (parse-linear-expression 5)))
+  (is-true (linear-programming/expressions::linear-constant-p
+            (parse-linear-expression 2/3)))
+  (is-true (linear-programming/expressions::linear-constant-p
+            (parse-linear-expression -1.0)))
+
+  (is-false (linear-programming/expressions::linear-constant-p
+             (parse-linear-expression 'x)))
+  (is-false (linear-programming/expressions::linear-constant-p
+             (parse-linear-expression '(+ x 5)))))
+
 (test scale-linear-expression
   (declare (notinline scale-linear-expression))
   (is (equal '((a . 24) (b . 7/2) (c . 4.5))

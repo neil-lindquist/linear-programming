@@ -24,11 +24,6 @@
 (declaim (inline sum-linear-expressions))
 (defun sum-linear-expressions (&rest exprs)
   "Takes linear expressions and reduces it into a single expression."
-  (sum-linear-expressions-list exprs))
-
-(declaim (inline sum-linear-expressions-list))
-(defun sum-linear-expressions-list (exprs)
-  "Takes a list of linear expressions and reduces it into a single expression."
   (let ((sum (copy-alist (first exprs))))
     (iter (for expr in (rest exprs))
       (iter (for term in expr)
