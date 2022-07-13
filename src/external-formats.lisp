@@ -59,7 +59,7 @@ the rest of the elements are the constraints."
   (let* ((objective-func (let ((objective `(,(problem-type problem)
                                              ,(format-linear-expression (problem-objective-func problem)))))
                            (if (symbol-package (problem-objective-var problem)) ; is non uninterned
-                             `(= ,(problem-objective-var problem) objective)
+                             `(= ,(problem-objective-var problem) ,objective)
                              objective)))
          (eq-constraints (iter (for constraint in (problem-constraints problem))
                            (collect (list (first constraint)

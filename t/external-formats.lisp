@@ -167,6 +167,27 @@
     (is (simple-linear-constraint-set-equal '((<= ((x . 1) (y . 1)) 8) (<= ((y . 1) (z . 1)) 7))
                                         (problem-constraints parsed-problem))))
 
+  (let* ((base-problem (parse-linear-problem '(min (= w (+ (* 0.2 x) y)))
+                                             '((>= (+ x y) 4.2)
+                                               (integer x))))
+
+         (string (with-output-to-string (stream)
+                   (write-sexp stream base-problem)))
+         (parsed-problem (with-input-from-string (stream string)
+                           (read-sexp stream))))
+    (is (typep parsed-problem 'problem))
+    (is (eq 'min (problem-type parsed-problem)))
+    (is (typep (problem-vars parsed-problem) 'vector))
+    (is (equal 'w (problem-objective-var parsed-problem)))
+    (is (set-equal '(x y)
+                   (map 'list #'identity (problem-vars parsed-problem))))
+    (is (set-equal '((x . 0.2) (y . 1))
+                   (problem-objective-func parsed-problem)))
+    (is (set-equal '(x)
+                   (problem-integer-vars parsed-problem)))
+    (is (simple-linear-constraint-set-equal '((>= ((x . 1) (y . 1)) 4.2))
+                                            (problem-constraints parsed-problem))))
+
   ;;specify package
   (let* ((base-problem (parse-linear-problem '(max (+ x (* 4 y) (* 8 z)))
                                              '((<= (+ x y) 8)
