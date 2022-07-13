@@ -61,7 +61,7 @@ constant values are mapped to `+constant+`."
 
        ; arithmetic
        ((+)
-        (sum-linear-expressions-list (mapcar 'parse-linear-expression (rest expr))))
+        (apply 'sum-linear-expressions (mapcar 'parse-linear-expression (rest expr))))
 
        ((*)
         (let ((factors (mapcar #'parse-linear-expression (rest expr)))

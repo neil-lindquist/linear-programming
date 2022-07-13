@@ -240,7 +240,7 @@ boundaries are supported."
              (let* ((var (field 3 line :symbol))
                     ;; LB UB intp
                     (attrs (gethash var var-info (list 0 nil nil)))
-                    (bound-type (field 1 line :name-string)))
+                    (bound-type (string-upcase (field 1 line :name-string))))
                (setf (gethash var var-info)
                      (cond
                        ((string= bound-type "LO")
