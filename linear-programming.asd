@@ -1,7 +1,7 @@
 
 (defsystem "linear-programming"
   :description "A library for solving linear programming problems"
-  :version "2.1.1"
+  :version "2.3.0"
   :author "Neil Lindquist <NeilLindquist5@gmail.com>"
   :licence "MIT"
   :homepage "https://neil-lindquist.github.io/linear-programming/"

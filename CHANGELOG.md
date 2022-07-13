@@ -1,3 +1,9 @@
+## 2.3.0
+* Depreciate < and > in favor of <= and >= due to misleading semantics (#10)
+* Fix bug with variable bounds (#11)
+* Add support to MPS reader for CRLF line endings
+* Fix bug in sexp writer with named objective variables
+
 ## 2.2.1
 * Fix bug with equality constraints in simplex backend (#7)
 * Fix handling of artificial variables remaining in the basis for 2-phase simplex
