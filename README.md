@@ -1,6 +1,5 @@
 # Common Lisp Linear Programming
-[![Travis Build Status](https://img.shields.io/travis/neil-lindquist/linear-programming/master?logo=travis)](https://travis-ci.org/neil-lindquist/linear-programming?branch=master)
-[![Appveyor Build status](https://ci.appveyor.com/api/projects/status/8rx1x28xxx7tkis4/branch/master?svg=true)](https://ci.appveyor.com/project/neil-lindquist/linear-programming/branch/master)
+[![Github Actions Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fneil-lindquist%2Flinear-programming%2Fbadge&style=flat&label=build)](https://actions-badge.atrox.dev/neil-lindquist/linear-programming/goto)
 [![Coverage Status](https://coveralls.io/repos/github/neil-lindquist/linear-programming/badge.svg?branch=master)](https://coveralls.io/github/neil-lindquist/linear-programming?branch=master)
 
 ![MIT License](https://img.shields.io/github/license/neil-lindquist/linear-programming.svg?color=informational)
