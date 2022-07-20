@@ -16,10 +16,20 @@ jobs:
     name: ${{ matrix.lisp }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
-      # Each combination of lisp and os are tested
       matrix:
-        lisp: [sbcl-bin, ccl-bin]
+        lisp: [sbcl-bin]
         os: [windows-latest, ubuntu-latest, macOS-latest]
+        include:
+          - lisp: abcl-bin
+            os: ubuntu-latest
+          - lisp: allegro
+            os: ubuntu-latest
+          - lisp: ccl-bin
+            os: ubuntu-latest
+          - lisp: ecl
+            os: ubuntu-latest
+          - lisp: cmu-bin
+            os: ubuntu-latest
     env:
       LISP: ${{ matrix.lisp }}
 
