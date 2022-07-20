@@ -36,8 +36,40 @@ jobs:
     steps:
       # This action checks out our code in the working directory
       - uses: actions/checkout@v2
-      # This action installs roswell and a few other utilities such as qlot
+
+      # Cache roswell - Based on code from 40ants
+      # broken on Windows due to sudo and paths
+      - name: Cache setup
+        if: runner.os != 'Windows'
+        id: cache-setup
+        run: |
+          sudo mkdir -p /usr/local/etc/roswell
+          sudo chown "${USER}" /usr/local/etc/roswell
+          # Here the ros binary will be restored:
+          sudo chown "${USER}" /usr/local/bin
+          echo "::set-output name=value::$(date -u "+%Y-%m")"
+      - name: Cache Roswell Setup
+        if: runner.os != 'Windows'
+        id: cache
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-roswell
+        with:
+          path: |
+            /usr/local/bin/ros
+            ~/.cache/common-lisp/
+            ~/.roswell
+            /usr/local/etc/roswell
+            .qlot
+          key: "roswell-${{ env.LISP }}-${{ runner.os }}-${{ steps.cache-setup.outputs.value }}-${{ hashFiles('qlfile.lock') }}"
+      - name: Load Roswell from Cache
+        run: |
+          echo $HOME/.roswell/bin >> $GITHUB_PATH
+          echo .qlot/bin >> $GITHUB_PATH
+        if: runner.os != 'Windows' && steps.cache.outputs.cache-hit == 'true'
+      # Install roswell with setup-lisp
       - uses: 40ants/setup-lisp@v2
+        if: runner.os == 'Windows' || steps.cache.outputs.cache-hit != 'true'
 
       - name: Configure Coverage
         # Only gather code coverage on Linux-SBCL
@@ -45,6 +77,7 @@ jobs:
         run: |
           echo "COVERALLS=true" >> $GITHUB_ENV
           echo "COVERALLS_REPO_TOKEN=${{ secrets.COVERALLS_REPO_TOKEN }}" >> $GITHUB_ENV
+
 
       # These steps run our tests
       # Windows needs to be run with the msys2 shell due to how roswell is installed
@@ -67,6 +100,7 @@ jobs:
           # Run the tests
           run-fiveam -e t -l linear-programming-test linear-programming-test:linear-programming
 
+      # Update website
       - name: Build Docs
         if: github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.os == 'ubuntu-latest' && matrix.lisp == 'sbcl-bin'
         run: |
