@@ -24,12 +24,14 @@ jobs:
             os: ubuntu-latest
           - lisp: allegro
             os: ubuntu-latest
-          - lisp: ccl-bin
-            os: ubuntu-latest
+          # Hanging on GH Actions
+          #- lisp: ccl-bin
+          #  os: ubuntu-latest
           - lisp: ecl
             os: ubuntu-latest
-          - lisp: cmu-bin
-            os: ubuntu-latest
+          # Default version of cmu is broken in roswell
+          #- lisp: cmu-bin
+          #  os: ubuntu-latest
       fail-fast: false
     env:
       LISP: ${{ matrix.lisp }}
@@ -48,7 +50,7 @@ jobs:
           sudo chown "${USER}" /usr/local/etc/roswell
           # Here the ros binary will be restored:
           sudo chown "${USER}" /usr/local/bin
-          echo "::set-output name=value::$(date -u "+%Y-%m")"
+          echo "value=$(date -u "+%Y-%m")" >> $GITHUB_OUTPUT
       - name: Cache Roswell Setup
         if: runner.os != 'Windows'
         id: cache
