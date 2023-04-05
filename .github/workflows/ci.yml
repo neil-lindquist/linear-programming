@@ -30,12 +30,13 @@ jobs:
             os: ubuntu-latest
           - lisp: cmu-bin
             os: ubuntu-latest
+      fail-fast: false
     env:
       LISP: ${{ matrix.lisp }}
 
     steps:
       # This action checks out our code in the working directory
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       # Cache roswell - Based on code from 40ants
       # broken on Windows due to sudo and paths
@@ -51,7 +52,7 @@ jobs:
       - name: Cache Roswell Setup
         if: runner.os != 'Windows'
         id: cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           cache-name: cache-roswell
         with:
