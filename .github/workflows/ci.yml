@@ -105,7 +105,7 @@ jobs:
 
       # Update website
       - name: Build Docs
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.os == 'ubuntu-latest' && matrix.lisp == 'sbcl-bin'
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/master' && matrix.os == 'ubuntu-latest' && matrix.lisp == 'sbcl-bin'
         run: |
           ros install neil-lindquist/doc-site-generator
           copy-site-base docs docs-bin
