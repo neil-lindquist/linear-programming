@@ -1,5 +1,5 @@
 # Common Lisp Linear Programming
-[![Github Actions Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fneil-lindquist%2Flinear-programming%2Fbadge&style=flat&label=build)](https://actions-badge.atrox.dev/neil-lindquist/linear-programming/goto)
+[![Github Actions Status](https://img.shields.io/github/actions/workflow/status/neil-lindquist/linear-programming/ci.yml?logo=github)](https://github.com/neil-lindquist/linear-programming/actions/workflows/ci.yml)
 [![Coverage Status](https://coveralls.io/repos/github/neil-lindquist/linear-programming/badge.svg?branch=master)](https://coveralls.io/github/neil-lindquist/linear-programming?branch=master)
 
 ![MIT License](https://img.shields.io/github/license/neil-lindquist/linear-programming.svg?color=informational)
