@@ -113,7 +113,7 @@ jobs:
           script/generate-API-docs.ros
 
       - name: Deploy Docs
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.os == 'ubuntu-latest' && matrix.lisp == 'sbcl-bin'
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/master' && matrix.os == 'ubuntu-latest' && matrix.lisp == 'sbcl-bin'
         uses: crazy-max/ghaction-github-pages@v3
         with:
           target_branch: gh-pages
