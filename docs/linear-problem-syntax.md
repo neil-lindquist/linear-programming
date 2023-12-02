@@ -1,5 +1,6 @@
 ---
 layout: page
+show-avatar: false
 title: Linear Problem DSL
 meta-description: The specification of the Linear Programming Problem DSL
 ---
