@@ -1,0 +1,260 @@
+# --- General options --- #
+
+baseurl: ""
+# If you are building a GitHub project page then use these settings:
+#baseurl: "/projectname"
+
+
+# Name of website
+title: Neil Lindquist
+
+# Short description of your site
+description:
+
+# --- Navigation bar options --- #
+
+# List of links in the navigation bar
+navbar-links:
+  Current Projects: "projects"
+  CV: "cv"
+
+# Image to show in the navigation bar - image must be a square (width = height)
+# Remove this parameter if you don't want an image in the navbar
+avatar: "/img/avatar.png"
+
+# If you want to have an image logo in the top-left corner instead of the title text,
+# then specify the following parameter
+# title-img: /path/to/image
+
+# --- Footer options --- #
+
+# Select your active Social Network Links.
+# Uncomment the links you want to show in the footer and add your information to each link.
+# You can reorder the items to define the link order.
+# If you want to add a new link that isn't here, you'll need to also edit the file _data/SocialNetworks.yml
+social-network-links:
+  email: "neillindquist5@gmail.com"
+  public-key: "/neil-lindquist-public-key.pgp"
+  github: neil-lindquist
+  linkedin: neil-lindquist
+  orcid: 0000-0001-9404-3121
+#  rss: true
+#  facebook: daattali
+#  twitter: daattali
+#  reddit: yourname
+#  xing: yourname
+#  stackoverflow: "3943160/daattali"
+#  snapchat: deanat78
+#  instagram: deanat78
+#  youtube: user/deanat78
+#  spotify: yourname
+#  telephone: +14159998888
+#  steam: deanat78
+#  twitch: yourname
+#  yelp: yourname
+
+
+# Exclude these files from production site
+exclude:
+  - LICENSE
+  - README.md
+
+
+
+# Default YAML values (more information on Jekyll's site)
+defaults:
+  -
+    scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+      comments: false  # add comments to all blog posts
+      social-share: false # add social media sharing buttons to all blog posts
+  -
+    scope:
+      path: "" # all files
+    values:
+      layout: "page"
+      show-avatar: true
+
+
+################ Below this are site general settings ########################
+
+
+url: "https://neil-lindquist.github.io"
+
+# Change all these values or delete the ones you don't want.
+# Important: you must keep the "name" parameter, everything else you can remove
+author:
+  name: Neil Lindquist
+
+# --- Blog options --- #
+paginate_path: "/blog/page:num/"
+
+# --- Background colour/image options --- #
+
+# Personalize the colors in your website. Colour values can be any valid CSS colour
+
+navbar-col: "#F5F5F5"
+navbar-text-col: "#404040"
+navbar-children-col: "#F5F5F5"
+page-col: "#FFFFFF"
+link-col: "#008AFF"
+hover-col: "#0085A1"
+footer-col: "#F5F5F5"
+footer-text-col: "#777777"
+footer-link-col: "#404040"
+
+# Alternatively, the navbar, footer, and page background can be set to use background images
+# instead of colour
+
+# navbar-img: "/img/bgimage.png"
+# footer-img: "/img/bgimage.png"
+# page-img: "/img/bgimage.png"
+
+
+# Select which share links to show in posts
+share-links-active:
+#  twitter: true
+#  facebook: true
+#  linkedin: true
+
+# How to display the link to the website in the footer
+# Remove this if you don't want a link in the footer
+url-pretty: "neil-lindquist.github.io"
+
+# --- Web Statistics Section --- #
+
+# Fill in your Google Analytics gtag.js ID to track your website using gtag
+#gtag: "UA-130011901-1"
+
+# Fill in your Google Analytics ID to track your website using GA
+#google_analytics: "UA-130011901-1"
+
+# Google Tag Manager ID
+#gtm: ""
+
+# Matomo (aka Piwik) Web statistics
+# Uncomment the following section to enable Matomo. The opt-out parameter controls
+# whether or not you want to allow users to opt out of tracking.
+
+#matomo:
+#  site_id: "9"
+#  uri: "demo.wiki.pro"
+#  opt-out: true
+
+# --- Comments --- #
+
+# Fill in your Disqus shortname (NOT the userid) if you want to support Disqus comments
+# disqus: ""
+
+# To use Facebook Comments, fill in a Facebook App ID
+# fb_comment_id: ""
+
+# --- Misc --- #
+
+# Facebook App ID
+# fb_app_id: ""
+
+# Excerpt Word Length
+# Truncates the excerpt to the specified number of words on the index page
+excerpt_length: 50
+
+# Character used to separate site title and description in HTML document title
+# and RSS feed title
+title-separator: " - "
+
+# --- Don't need to touch anything below here (but you can if you want) --- #
+
+# Output options (more information on Jekyll's site)
+timezone: " America/Chicago"
+markdown: kramdown
+highlighter: rouge
+permalink: /:year-:month-:day-:title/
+paginate: 5
+
+kramdown:
+  input: GFM
+  hard_wrap: false
+
+# Use tags index page and make tags on each post clickable
+link-tags: true
+
+plugins:
+  - jekyll-paginate
+
+# Beautiful Jekyll / Dean Attali
+# 2fc73a3a967e97599c9763d05e564189
+# --- General options --- #
+
+baseurl: "/linear-programming"
+
+# Name of website
+title: linear-programming
+
+# Short description of your site
+description: Documentation for the linear-programming Common Lisp Library
+
+# --- Navigation bar options --- #
+
+# List of links in the navigation bar
+navbar-links:
+  API Documentation: "API"
+  DSL Syntax: "linear-problem-syntax"
+
+# Image to show in the navigation bar - image must be a square (width = height)
+# Remove this parameter if you don't want an image in the navbar
+# avatar: "/img/avatar.png"
+
+# If you want to have an image logo in the top-left corner instead of the title text,
+# then specify the following parameter
+# title-img: /path/to/image
+
+# --- Footer options --- #
+
+# Select your active Social Network Links.
+# Uncomment the links you want to show in the footer and add your information to each link.
+# You can reorder the items to define the link order.
+# If you want to add a new link that isn't here, you'll need to also edit the file _data/SocialNetworks.yml
+social-network-links:
+  email: "neillindquist5@gmail.com"
+  public-key: "/neil-lindquist-public-key.pgp"
+  github: neil-lindquist/linear-programming
+#  linkedin: neil-lindquist
+#  orcid: 0000-0001-9404-3121
+#  rss: true
+#  facebook: daattali
+#  twitter: daattali
+#  reddit: yourname
+#  xing: yourname
+#  stackoverflow: "3943160/daattali"
+#  snapchat: deanat78
+#  instagram: deanat78
+#  youtube: user/deanat78
+#  spotify: yourname
+#  telephone: +14159998888
+#  steam: deanat78
+#  twitch: yourname
+#  yelp: yourname
+
+
+# Exclude these files from production site
+exclude:
+
+# Default YAML values (more information on Jekyll's site)
+defaults:
+  -
+    scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+      comments: false  # add comments to all blog posts
+      social-share: false # add social media sharing buttons to all blog posts
+  -
+    scope:
+      path: "" # all files
+    values:
+      layout: "page"
+      show-avatar: false
