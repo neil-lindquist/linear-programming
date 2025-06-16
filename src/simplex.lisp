@@ -450,15 +450,15 @@ unchanged."
                  (decf (aref main-matrix num-constraints col)
                        (* scale (aref main-matrix i col))))))))
        (n-solve-tableau main-tab)))
-    ((tableau-p tableau)
+    (t
+     (check-type tableau tableau)
      (iter (for entering-column = (find-entering-column tableau))
            (while entering-column)
        (let ((pivoting-row (find-pivoting-row tableau entering-column)))
          (unless pivoting-row
            (error 'unbounded-problem-error))
          (n-pivot-row tableau entering-column pivoting-row)))
-     tableau)
-    (t (check-type tableau tableau))))
+     tableau)))
 
 
 ;;; Branch and Bound solver
