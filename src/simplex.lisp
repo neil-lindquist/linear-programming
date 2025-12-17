@@ -438,19 +438,19 @@ unchanged."
                                    (/ (tableau-fp-tolerance-factor solved-art-tab) 2))
                          (setf row-is-zero nil)
                          (return)))
-                     (if row-is-zero
-                         ;; Redundant constraint - use any non-basis variable
-                         (progn
-                           (iter (for j from 0 below num-vars)
-                             (unless (find j art-basis)
-                               (setf new-col j)
-                               (return)))
-                           (when (= new-col -1)
-                             (setf new-col 0))
-                           (when (not (fp= 0 (aref art-matrix i new-col)
-                                          (/ (tableau-fp-tolerance-factor solved-art-tab) 2)))
-                             (n-pivot-row solved-art-tab new-col i)))
-                         (error "Artificial variable still in basis and cannot be replaced")))
+                     (cond
+                       (row-is-zero
+                        ;; Redundant constraint - use any non-basis variable
+                        (iter (for j from 0 below num-vars)
+                          (unless (find j art-basis)
+                            (setf new-col j)
+                            (return)))
+                        (when (= new-col -1)
+                          (setf new-col 0))
+                        (when (not (fp= 0 (aref art-matrix i new-col)
+                                        (/ (tableau-fp-tolerance-factor solved-art-tab) 2)))
+                          (n-pivot-row solved-art-tab new-col i)))
+                       (t (error "Artificial variable still in basis and cannot be replaced"))))
                    (n-pivot-row solved-art-tab new-col i)))))
 
          ;; Copy coefficients and RHS to main tableau
