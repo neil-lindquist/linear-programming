@@ -5,7 +5,8 @@
          :linear-programming/conditions
          :linear-programming/expressions)
   (:import-from :alexandria
-                #:if-let)
+                #:if-let
+                #:hash-table-keys)
   (:import-from :linear-programming/utils
                 #:validate-bounds
                 #:lb-max
@@ -187,24 +188,26 @@ inequalities and a list of integer variables."
            (integer-constraints (second parsed-constraints))
            (bounds (third parsed-constraints))
            ;collect all of the variables referenced
-           (var-list (remove-duplicates (mapcar #'car objective-func)))
-           (var-list (union var-list integer-constraints))
-           (var-list (union var-list (mapcar #'first bounds)))
-           (var-list (union var-list
-                            (reduce (lambda (l1 l2) (union l1 (mapcar #'car l2)))
-                                    eq-constraints
-                                    :key 'second
-                                    :initial-value nil)))
-           (variables (make-array (length var-list)
-                                  :initial-contents var-list
-                                  :element-type 'symbol)))
-      (make-problem :type type
-                    :vars variables
-                    :objective-var objective-var
-                    :objective-func objective-func
-                    :integer-vars integer-constraints
-                    :var-bounds bounds
-                    :constraints eq-constraints))))
+           (var-set (make-hash-table)))
+      (dolist (entry objective-func)
+        (setf (gethash (car entry) var-set) t))
+      (dolist (var integer-constraints)
+        (setf (gethash var var-set) t))
+      (dolist (bound bounds)
+        (setf (gethash (car bound) var-set) t))
+      (dolist (constraint eq-constraints)
+        (dolist (entry (second constraint))
+          (setf (gethash (car entry) var-set) t)))
+      (let ((variables (make-array (hash-table-count var-set)
+                                   :initial-contents (hash-table-keys var-set)
+                                   :element-type 'symbol)))
+        (make-problem :type type
+                      :vars variables
+                      :objective-var objective-var
+                      :objective-func objective-func
+                      :integer-vars integer-constraints
+                      :var-bounds bounds
+                      :constraints eq-constraints)))))
 
 
 (defmacro make-linear-problem (objective &rest constraints)
