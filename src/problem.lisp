@@ -6,7 +6,8 @@
          :linear-programming/expressions)
   (:import-from :alexandria
                 #:if-let
-                #:hash-table-keys)
+                #:hash-table-keys
+                #:hash-table-alist)
   (:import-from :linear-programming/utils
                 #:validate-bounds
                 #:lb-max
@@ -59,10 +60,21 @@
       (documentation 'problem-var-bounds 'function) "A list of variable bounds, of the form `(var . (lower-bound . upper-bound))`."
       (documentation 'problem-constraints 'function) "A list of (in)equality constraints.")
 
+(declaim (inline add-bound))
+(defun add-bound (bound-table var new-bound &optional implicit-lb)
+  (if-let (old-bound (gethash var bound-table))
+    (setf (gethash var bound-table)
+          (cons (lb-max (car old-bound) (car new-bound))
+                (ub-min (cdr old-bound) (cdr new-bound))))
+    (setf (gethash var bound-table)
+          (cons (or (car new-bound) implicit-lb)
+                (cdr new-bound)))))
+
 (defun parse-linear-constraints (exprs)
   "Parses the list of constraints and returns a list containing a list of simple
 inequalities and a list of integer variables."
   (iter expressions-loop
+        (with bound-table = (make-hash-table))
         (for expr in exprs)
     (case (first expr)
       ((<= <)
@@ -82,29 +94,26 @@ inequalities and a list of integer variables."
        (unioning (rest expr)
                  into integer))
       ((bounds)
-       (appending (mapcar (lambda (entry)
-                            (cond
-                              ((symbolp (first entry))
-                               (unless (and (<= (length entry) 2)
-                                            (or (null (second entry))
-                                                (numberp (second entry))))
-                                 (error 'parsing-error :description (format nil "Invalid bounds entry ~S" entry)))
-                               (cons (first entry) (cons nil (second entry))))
-                              (t
-                               (unless (and (numberp (first entry))
-                                            (symbolp (second entry))
-                                            (or (null (third entry))
-                                                (numberp (third entry))))
-                                 (error 'parsing-error :description (format nil "Invalid bounds entry ~S" entry)))
-                               (cons (second entry) (cons (first entry) (third entry))))))
-                          (rest expr))
-                  into bounds))
+       (dolist (entry (rest expr))
+         (cond
+           ((symbolp (first entry))
+            (unless (and (<= (length entry) 2)
+                         (or (null (second entry))
+                             (numberp (second entry))))
+              (error 'parsing-error :description (format nil "Invalid bounds entry ~S" entry)))
+            (add-bound bound-table (first entry) (cons nil (second entry))))
+           (t
+            (unless (and (numberp (first entry))
+                         (symbolp (second entry))
+                         (or (null (third entry))
+                             (numberp (third entry))))
+              (error 'parsing-error :description (format nil "Invalid bounds entry ~S" entry)))
+            (add-bound bound-table (second entry) (cons (first entry) (third entry)))))))
       ((binary)
        (unioning (rest expr)
                  into integer)
-       (appending (mapcar (lambda (var) `(,var . (0 . 1)))
-                          (rest expr))
-                  into bounds))
+       (dolist (var (rest expr))
+         (add-bound bound-table var '(0 . 1))))
       (t (error 'parsing-error :description (format nil "~A is not a valid constraint" expr))))
     (finally
       (iter equalities-loop
@@ -127,17 +136,9 @@ inequalities and a list of integer variables."
                         (new-bound (cond
                                      ((eq op '=) (cons const const))
                                      ((<= coef 0) (cons const nil))
-                                     (t (cons nil const))))
-                        (match (assoc var bounds))
-                        (old-bound (cdr match)))
-                   (if match
-                     (setf (cdr match)
-                           (cons (lb-max (car old-bound) (car new-bound))
-                                 (ub-min (cdr old-bound) (cdr new-bound))))
-                     (collect (cons var
-                                    (cons (or (car new-bound) 0) ; if there isn't a previous bound, use the implicit bound
-                                          (cdr new-bound)))
-                              into extra-bounds))))
+                                     (t (cons nil const)))))
+                   ;; if there isn't a previous bound, use the implicit bound
+                   (add-bound bound-table var new-bound 0)))
                 ((eq op '=)
                  (collect (list '= sum const) into simple-constraints))
                 ((<= 0 const)
@@ -146,19 +147,13 @@ inequalities and a list of integer variables."
                  (collect (list '>= (scale-linear-expression sum -1) (- const))
                           into simple-constraints))))))
         (finally
+         (maphash (lambda (var bound)
+                    (validate-bounds (car bound) (cdr bound) var))
+                  bound-table)
           (return-from expressions-loop
             (list simple-constraints
                   integer
-                  (reduce (lambda (result next)
-                            (if-let (match (assoc (first next) result))
-                              (let* ((lb (lb-max (car (cdr next)) (car (cdr match))))
-                                     (ub (ub-min (cdr (cdr next)) (cdr (cdr next)))))
-                                (validate-bounds lb ub (first next))
-                                (setf (cdr match) (cons lb ub))
-                                result)
-                              (list* next result)))
-                          (nconc extra-bounds bounds)
-                          :initial-value nil))))))))
+                  (hash-table-alist bound-table))))))))
 
 
 
