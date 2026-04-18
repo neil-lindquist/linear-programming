@@ -42,7 +42,11 @@ variable. The default backend is the `simplex-solver` in the
 problem, and any backend specific keyword arguments and returns some form of
 solution object. The solution object should support the following methods
 `solution-problem`, `solution-objective-value`, `solution-variable`, and
-`solution-reduced-cost`.")
+`solution-reduced-cost`.
+
+Besides the default `linear-programming/simplex:simplex-solver, there are two optimized backends available:
+* [linear-programming-glpk](https://github.com/neil-lindquist/linear-programming-glpk) and
+* [linear-programming-scip](https://github.com/kchanqvq/linear-programming-scip).")
 
 ;;; Solution object
 

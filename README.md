@@ -13,7 +13,9 @@ It's designed to provide a high-level and ergonomic API for specifying linear pr
 
 The core library is implemented purely in Common Lisp with only a few community-standard libraries as dependencies (ASDF, Alexandria, Iterate).
 However, the solver is designed to support alternative backends without any change to the user's code.
-Currently, there is a [backend for the GNU Linear Programming Kit (GLPK)](https://github.com/neil-lindquist/linear-programming-glpk).
+Currently, there are two optimized backends based on
+* [the GNU Linear Programming Kit (GLPK)](https://github.com/neil-lindquist/linear-programming-glpk) and
+* [the Solving Constraint Integer Programs (SCIP) library](https://github.com/kchanqvq/linear-programming-scip).
 
 ## Installation
 The linear-programming library is avalible in both the main Quicklisp distribution and Ultralisp, so it can loaded with with `(ql:quickload :linear-programming)`.
