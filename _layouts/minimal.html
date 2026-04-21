@@ -1,0 +1,27 @@
+---
+common-css:
+  - "/css/main-minimal.css"
+common-ext-js:
+  - "https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css"
+common-ext-js:
+  - https://code.jquery.com/jquery-1.12.4.min.js
+  - "https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"
+---
+
+<!DOCTYPE html>
+<html lang="en">
+
+  {% include head.html %}
+
+  <body>
+
+    <div role="main" class="container main-content">
+      {{ content }}
+    </div>
+
+    {% include footer-minimal.html %}
+
+    {% include footer-scripts.html %}
+
+  </body>
+</html>
