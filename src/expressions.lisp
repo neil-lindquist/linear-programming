@@ -5,7 +5,9 @@
         :linear-programming/conditions)
   (:import-from :alexandria
                 #:if-let
-                #:plist-alist)
+                #:plist-alist
+                #:alist-hash-table
+                #:hash-table-alist)
   (:export #:scale-linear-expression
            #:sum-linear-expressions
            #:parse-linear-expression
@@ -24,13 +26,11 @@
 (declaim (inline sum-linear-expressions))
 (defun sum-linear-expressions (&rest exprs)
   "Takes linear expressions and reduces it into a single expression."
-  (let ((sum (copy-alist (first exprs))))
+  (let ((sum (alist-hash-table (first exprs))))
     (iter (for expr in (rest exprs))
       (iter (for term in expr)
-        (if-let (pair (assoc (car term) sum))
-          (incf (cdr pair) (cdr term))
-          (push (cons (car term) (cdr term)) sum))))
-    sum))
+        (incf (gethash (car term) sum 0) (cdr term))))
+    (hash-table-alist sum)))
 
 
 (declaim (inline scale-linear-expression))
